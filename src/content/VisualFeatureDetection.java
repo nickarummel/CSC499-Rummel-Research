@@ -35,6 +35,20 @@ public class VisualFeatureDetection
 	protected Document doc;
 
 	/**
+	 * An instance variable that contains the default pixel size for the body of
+	 * HTML files.
+	 */
+	protected final double PIXELSIZE = 16.0;
+
+	/**
+	 * An instance variable that contains an array of the default font sizes for
+	 * paragraphs and headings 1-6. The paragraph tag's size is located in index
+	 * 0. Heading tags 1-6 are locate in indices 1-6, respectively.
+	 */
+	protected final double[] DEFAULTBODYEMSIZE =
+	{ 1.0, 2.0, 1.5, 1.17, 1.0, 0.83, 0.67 };
+
+	/**
 	 * Constructor for class that will immediately update the DOM tree from file
 	 * path parameter.
 	 * @param path The file path to be stored into the File object
@@ -92,8 +106,8 @@ public class VisualFeatureDetection
 
 	/**
 	 * Prints out the Document Object Model (DOM) tree by looping through all
-	 * elements. At each element, the node name and element's value will
-	 * printed out in the console.
+	 * elements. At each element, the node name and element's value will printed
+	 * out in the console.
 	 */
 	public void printDOMTree()
 	{
@@ -102,6 +116,16 @@ public class VisualFeatureDetection
 		{
 			System.out.println(element.nodeName() + " " + element.ownText());
 		}
+	}
+
+	/**
+	 * Converts the em (print size) to pixels based on the default size.
+	 * @param em The font size as an em unit
+	 * @return the font size in pixels (as a double)
+	 */
+	public double calculateEmAsPixels(double em)
+	{
+		return em * PIXELSIZE;
 	}
 
 }

@@ -86,5 +86,24 @@ public class TestVisualFeatureDetection
 		assertNotEquals(initial, vfd.doc);
 
 	}
+	
+	/**
+	 * Tests that the font size as em units can be converted to pixels correctly.
+	 */
+	@Test
+	public void testCalculateEmAsPixel()
+	{
+		// calculate for 16 pixels
+		double result = vfd.calculateEmAsPixels(1.0);
+		assertTrue(16.0 == result);
+		
+		// calculate for 22 pixels
+		result = vfd.calculateEmAsPixels(1.3750);
+		assertTrue(22.0 == result);
+		
+		// calculate for 9 pixels
+		result = vfd.calculateEmAsPixels(0.5625);
+		assertTrue(9.0 == result);
+	}
 
 }
