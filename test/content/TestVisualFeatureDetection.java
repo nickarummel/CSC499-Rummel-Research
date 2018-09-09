@@ -75,21 +75,22 @@ public class TestVisualFeatureDetection
 		Document initial = vfd.doc;
 
 		// print tree out to console
-		//vfd.printDOMTree();
+		// vfd.printDOMTree();
 
 		// change path
 		vfd.setFilePath("testset\\testPage2.html");
 
 		// print tree out to console again
-		//vfd.printDOMTree();
+		// vfd.printDOMTree();
 
 		// verify that original and updated Document objects are not the same
 		assertNotEquals(initial, vfd.doc);
 
 	}
-	
+
 	/**
-	 * Tests that the font size as em units can be converted to pixels correctly.
+	 * Tests that the font size as em units can be converted to pixels
+	 * correctly.
 	 */
 	@Test
 	public void testCalculateEmAsPixel()
@@ -97,40 +98,60 @@ public class TestVisualFeatureDetection
 		// calculate for 16 pixels
 		double result = vfd.calculateEmAsPixels(1.0);
 		assertTrue(16.0 == result);
-		
+
 		// calculate for 22 pixels
 		result = vfd.calculateEmAsPixels(1.3750);
 		assertTrue(22.0 == result);
-		
+
 		// calculate for 9 pixels
 		result = vfd.calculateEmAsPixels(0.5625);
 		assertTrue(9.0 == result);
 	}
-	
+
 	/**
-	 * Tests to see if an article title can be found based on a set of pre-determined criteria.
+	 * Tests to see if the font size of text in an HTML file can be found for an
+	 * article's title.
 	 */
 	@Test
 	public void testArticleTitleFontSizeDetection()
 	{
 		Elements allElements = vfd.getAllTextElements();
 		// paragraph tag is size 9 font so false
-		assertFalse(vfd.articleTitleFontSizeDetection(allElements));
+		for(int i = 0; i < allElements.size(); i++)
+		{
+			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
+		}
 		
+
 		// h2 tag at default size exists so true
+		// all three tags will return true (h1, h2, paragraph)
 		vfd.setFilePath("testset\\testPage2.html");
 		allElements = vfd.getAllTextElements();
-		assertTrue(vfd.articleTitleExists());
+		for(int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleTitleFontSizeDetection(allElements.get(i)));
+		}
 		
-		// h1 tag will have a size over 100 px
+
+		// h1 tag will have a size over 100 px so false
 		vfd.setFilePath("testset\\testPage3.html");
 		allElements = vfd.getAllTextElements();
-		assertFalse(vfd.articleTitleExists());
+		for(int i = 0; i < allElements.size(); i++)
+		{
+			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
+		}
 		
+
 		// pull style information from head of HTML file
+		// paragraph is font size 12 so false
 		vfd.setFilePath("testset\\testPage4.html");
 		allElements = vfd.getAllTextElements();
-		assertFalse(vfd.articleTitleExists());
+		for(int i = 0; i < allElements.size(); i++)
+		{
+			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
+		}
+		
 	}
+	
 
 }

@@ -148,16 +148,24 @@ public class VisualFeatureDetection
 	public boolean articleTitleExists()
 	{
 		Elements allElements = getAllTextElements();
+		boolean titleExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleTitleFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+//				if (articleTitleFontColorDetection(allElements.get(i)))
+//				{
+					// TODO: rules 3-6
+					titleExists = true;
+					break;
+//				}
 
-		// rule 1
-		if (articleTitleFontSizeDetection(allElements))
-		{
-			// TODO: rules 2-6
-			return true;
-		} else
-		{
-			return false;
+			}
 		}
+
+		return titleExists;
 
 	}
 
@@ -185,79 +193,73 @@ public class VisualFeatureDetection
 	 * data under the style tag of the HTML's head. Additionally, the font size
 	 * can be defined as three different measurement units: percentage, em, or
 	 * pixels.
-	 * @param textSet The array list of Elements that have paragraph or heading
-	 *            tags
+	 * @param textSet The current element that has a paragraph or heading tag
 	 * @return true if an Element's font size is in the range.
 	 */
-	protected boolean articleTitleFontSizeDetection(Elements textSet)
+	protected boolean articleTitleFontSizeDetection(Element textSet)
 	{
 		boolean detectFlag = false;
-		// loop through each element
-		for (int i = 0; i < textSet.size(); i++)
+		// get the style's element node form the HTML head
+		Elements headNode = doc.select("head");
+		// variable will remain null if no CSS style is defined in the head
+		Element styleNode = null;
+		// get the tags under the head
+		for (int j = 0; j < headNode.size(); j++)
 		{
-			// get the style's element node form the HTML head
-			Elements headNode = doc.select("head");
-			// variable will remain null if no CSS style is defined in the head
-			Element styleNode = null;
-			// get the tags under the head
-			for (int j = 0; j < headNode.size(); j++)
+			// check if the head node has any children
+			if (headNode.get(j).childNodeSize() > 0)
 			{
-				// check if the head node has any children
-				if (headNode.get(j).childNodeSize() > 0)
+				// check children for style tag
+				Elements children = headNode.get(j).children();
+				for (int k = 0; k < children.size(); k++)
 				{
-					// check children for style tag
-					Elements children = headNode.get(j).children();
-					for (int k = 0; k < children.size(); k++)
+					if (children.get(k).tagName().equalsIgnoreCase("style"))
 					{
-						if (children.get(k).tagName().equalsIgnoreCase("style"))
-						{
-							// style tag has been found, so save node for future
-							styleNode = children.get(k);
-						}
+						// style tag has been found, so save node for future
+						styleNode = children.get(k);
 					}
 				}
 			}
+		}
 
-			Element curElement = textSet.get(i);
-			System.out.println("Element: " + curElement.toString());
-			double size = 0.0;
-			// check for in-line style attribute
-			if (curElement.hasAttr("style") && curElement.attr("style").contains("font-size"))
+		Element curElement = textSet;
+		System.out.println("Element: " + curElement.toString());
+		double size = 0.0;
+		// check for in-line style attribute
+		if (curElement.hasAttr("style") && curElement.attr("style").contains("font-size"))
+		{
+			// tokenize to get the font size
+			String[] split = curElement.attr("style").split("font-size");
+			size = extractFontSizeFromTokens(split);
+		}
+		// check if style exists in head and if so, check to see if it has a
+		// font size attribute
+		// and the current text's tag (paragraph or heading) has values in
+		// the head's style.
+		else if ((styleNode != null) && styleNode.data().contains("font-size")
+				&& styleDataContainsElement(curElement, styleNode.data()))
+		{
+			// tokenize to get the font size
+			String[] fontSizeStyle = doc.select("style").first().data().split("font-size");
+			size = extractFontSizeFromTokens(fontSizeStyle);
+		}
+		// no style has been found
+		else
+		{
+			// get default font size for text tag
+			String tag = curElement.tagName();
+			for (int j = 0; j < TEXTTAGS.length; j++)
 			{
-				// tokenize to get the font size
-				String[] split = curElement.attr("style").split("font-size");
-				size = extractFontSizeFromTokens(split);
-			}
-			// check if style exists in head and if so, check to see if it has a
-			// font size attribute
-			// and the current text's tag (paragraph or heading) has values in
-			// the head's style.
-			else if ((styleNode != null) && styleNode.data().contains("font-size")
-					&& styleDataContainsElement(curElement, styleNode.data()))
-			{
-				// tokenize to get the font size
-				String[] fontSizeStyle = doc.select("style").first().data().split("font-size");
-				size = extractFontSizeFromTokens(fontSizeStyle);
-			}
-			// no style has been found
-			else
-			{
-				// get default font size for text tag
-				String tag = curElement.tagName();
-				for (int j = 0; j < TEXTTAGS.length; j++)
+				if (tag.equals(TEXTTAGS[j]))
 				{
-					if (tag.equals(TEXTTAGS[j]))
-					{
-						size = calculateEmAsPixels(DEFAULTBODYEMSIZE[j]);
-					}
+					size = calculateEmAsPixels(DEFAULTBODYEMSIZE[j]);
 				}
 			}
-			// check if font size is in range
-			if (size >= 15.0 && size <= 45.0)
-			{
-				detectFlag = true;
-				break;
-			}
+		}
+		// check if font size is in range
+		if (size >= 15.0 && size <= 45.0)
+		{
+			detectFlag = true;
 		}
 		return detectFlag;
 
@@ -351,4 +353,5 @@ public class VisualFeatureDetection
 		return result;
 	}
 
+	
 }
