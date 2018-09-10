@@ -1,7 +1,11 @@
 package content;
 
+import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -57,6 +61,18 @@ public class VisualFeatureDetection
 	{ "p", "h1", "h2", "h3", "h4", "h5", "h6" };
 
 	/**
+	 * An instance variable that will contain all the HTML color names.
+	 */
+	protected ArrayList<String> htmlColorNames;
+
+	/**
+	 * An instance variable that will contain all the HTML color hex values,
+	 * where the index of each hex value corresponds with the color names in the
+	 * ArrayList htmlColorNames.
+	 */
+	protected ArrayList<String> htmlColorHex;
+
+	/**
 	 * Constructor for class that will immediately update the DOM tree from file
 	 * path parameter.
 	 * @param path The file path to be stored into the File object
@@ -65,6 +81,10 @@ public class VisualFeatureDetection
 	{
 		setFilePath(path);
 		updateDOMTree();
+		htmlColorNames = new ArrayList<String>();
+		htmlColorHex = new ArrayList<String>();
+		readHtmlColorNamesAndHex();
+
 	}
 
 	/**
@@ -106,7 +126,31 @@ public class VisualFeatureDetection
 		try
 		{
 			doc = Jsoup.parse(file, CHARSET);
-		} catch (IOException e)
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Initializes both the htmlColorNames and htmlColorHex ArrayLists with the
+	 * values from the colorsHTML.csv file.
+	 */
+	protected void readHtmlColorNamesAndHex()
+	{
+		try
+		{
+			Scanner csvReader = new Scanner(new File("colorsHTML.csv"));
+			while (csvReader.hasNextLine())
+			{
+				String[] tokens = csvReader.nextLine().split(",");
+				htmlColorNames.add(tokens[0]);
+				htmlColorHex.add(tokens[1]);
+			}
+			csvReader.close();
+		}
+		catch (FileNotFoundException e)
 		{
 			e.printStackTrace();
 		}
@@ -155,12 +199,12 @@ public class VisualFeatureDetection
 			if (articleTitleFontSizeDetection(allElements.get(i)))
 			{
 				// rule 2
-//				if (articleTitleFontColorDetection(allElements.get(i)))
-//				{
+				if (articleTitleFontColorDetection(allElements.get(i)))
+				{
 					// TODO: rules 3-6
 					titleExists = true;
 					break;
-//				}
+				}
 
 			}
 		}
@@ -201,29 +245,11 @@ public class VisualFeatureDetection
 		boolean detectFlag = false;
 		// get the style's element node form the HTML head
 		Elements headNode = doc.select("head");
-		// variable will remain null if no CSS style is defined in the head
-		Element styleNode = null;
-		// get the tags under the head
-		for (int j = 0; j < headNode.size(); j++)
-		{
-			// check if the head node has any children
-			if (headNode.get(j).childNodeSize() > 0)
-			{
-				// check children for style tag
-				Elements children = headNode.get(j).children();
-				for (int k = 0; k < children.size(); k++)
-				{
-					if (children.get(k).tagName().equalsIgnoreCase("style"))
-					{
-						// style tag has been found, so save node for future
-						styleNode = children.get(k);
-					}
-				}
-			}
-		}
+		// styleNode will be null if no CSS data was found in the HTML's head
+		Element styleNode = getHeadStyleSheet(headNode);
 
 		Element curElement = textSet;
-		System.out.println("Element: " + curElement.toString());
+		// System.out.println("Element: " + curElement.toString());
 		double size = 0.0;
 		// check for in-line style attribute
 		if (curElement.hasAttr("style") && curElement.attr("style").contains("font-size"))
@@ -233,9 +259,8 @@ public class VisualFeatureDetection
 			size = extractFontSizeFromTokens(split);
 		}
 		// check if style exists in head and if so, check to see if it has a
-		// font size attribute
-		// and the current text's tag (paragraph or heading) has values in
-		// the head's style.
+		// font size attribute and the current text's tag (paragraph or heading)
+		// has values in the head's style.
 		else if ((styleNode != null) && styleNode.data().contains("font-size")
 				&& styleDataContainsElement(curElement, styleNode.data()))
 		{
@@ -266,43 +291,76 @@ public class VisualFeatureDetection
 	}
 
 	/**
+	 * Checks the HTML's head for a style tag, which will contain internal CSS
+	 * information.
+	 * @param headNode the start of the head HTML tag
+	 * @return the Element node containing the style information, null if the
+	 *         style tag was not found
+	 */
+	public Element getHeadStyleSheet(Elements headNode)
+	{
+		// variable will remain null if no CSS style is defined in the head
+		Element styleNode = null;
+		// get the tags under the head
+		for (int j = 0; j < headNode.size(); j++)
+		{
+			// check if the head node has any children
+			if (headNode.get(j).childNodeSize() > 0)
+			{
+				// check children for style tag
+				Elements children = headNode.get(j).children();
+				for (int k = 0; k < children.size(); k++)
+				{
+					if (children.get(k).tagName().equalsIgnoreCase("style"))
+					{
+						// style tag has been found, so save node for future
+						styleNode = children.get(k);
+					}
+				}
+			}
+		}
+		return styleNode;
+	}
+
+	/**
 	 * Extracts the font size in any measurable unit (em, percent, pixels).
-	 * @param split The tokens from a String.split("font-size") call.
+	 * @param tokens The tokens from a String.split("font-size") call.
 	 * @return the font size as a Double
 	 */
-	private double extractFontSizeFromTokens(String[] split)
+	private double extractFontSizeFromTokens(String[] tokens)
 	{
 		String fontSize = "";
 		double size;
 		int splitIndex = -1;
 		// loop through each token
-		for (int k = 0; k < split.length; k++)
+		for (int k = 0; k < tokens.length; k++)
 		{
 			// find the token that contains one of the measurement units for
 			// font size
-			if (split[k].contains("em") || split[k].contains("%") || split[k].contains("px"))
+			if (tokens[k].contains("em") || tokens[k].contains("%") || tokens[k].contains("px"))
 			{
 				splitIndex = k;
 				try
 				{
 					// try to get 3 digits for size
-					fontSize = split[k].substring(1, 5);
+					fontSize = tokens[k].substring(1, 5);
 					// if any other non-number characters remain, try to get 2
 					// digits
 					if (fontSize.contains("p") || fontSize.contains("e") || fontSize.contains("%"))
 					{
-						fontSize = split[k].substring(1, 4);
+						fontSize = tokens[k].substring(1, 4);
 					}
-				} catch (Exception e)
+				}
+				catch (Exception e)
 				{
 					// if getting 3 digits has a null pointer exception,
 					// get two digits
-					fontSize = split[k].substring(1, 4);
+					fontSize = tokens[k].substring(1, 4);
 				}
 			}
 		}
 		// trim down to get the correct size as a double if measured in em
-		if (splitIndex > -1 && split[splitIndex].contains("em"))
+		if (splitIndex > -1 && tokens[splitIndex].contains("em"))
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
@@ -310,12 +368,13 @@ public class VisualFeatureDetection
 		}
 		// trim down to get the correct size as a double if measured as
 		// percentage
-		if (splitIndex > -1 && split[splitIndex].contains("%"))
+		if (splitIndex > -1 && tokens[splitIndex].contains("%"))
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
 			size = Double.parseDouble(((trimmed.substring(0, trimmed.length() - 2)))) / 100.0;
-		} else
+		}
+		else
 		{
 			// trim down assuming that it was pixels
 			String trimmed = fontSize.trim();
@@ -353,5 +412,372 @@ public class VisualFeatureDetection
 		return result;
 	}
 
-	
+	protected boolean articleTitleFontColorDetection(Element textSet)
+	{
+		boolean detectFlag = false;
+
+		// get the style's element node form the HTML head
+		Elements headNode = doc.select("head");
+
+		// styleNode will be null if no CSS data was found in the HTML's head
+		Element styleNode = getHeadStyleSheet(headNode);
+		Element curElement = textSet;
+
+		Color fontColor = null;
+		// check for in-line style attribute
+		if (curElement.hasAttr("style") && curElement.attr("style").contains("color"))
+		{
+			// tokenize to get the font color
+			String[] split = curElement.attr("style").split("color");
+			fontColor = extractColorFromTokens(split);
+		}
+		// check if style exists in head and if so, check to see if it has a
+		// color attribute and the current text's tag (paragraph or heading)
+		// has values in the head's style.
+		else if ((styleNode != null) && styleNode.data().contains("color")
+				&& styleDataContainsElement(curElement, styleNode.data()))
+		{
+			// tokenize to get the font size
+			String[] split = doc.select("style").first().data().split("color");
+			fontColor = extractColorFromTokens(split);
+		}
+
+		if (fontColor == null)
+		{
+			// no style has been found so default color is black - rgb(0,0,0)
+			fontColor = new Color(0, 0, 0);
+		}
+
+		// check if color is black or blue
+		if(checkColorInRange(Color.decode("#000000"), fontColor, 150) || checkColorInRange(Color.decode("#0000FF"), fontColor, 150))
+		{
+			detectFlag = true;
+		}
+		return detectFlag;
+	}
+
+	private Color extractColorFromTokens(String[] tokens)
+	{
+		Color color = null;
+		for (int i = 0; i < tokens.length; i++)
+		{
+			// makes sure that the color attribute was not cut off
+			// from another attribute containing the word color
+			// (example: background-color)
+			if (!tokens[i].endsWith("-"))
+			{
+				// # character starts the hex color code
+				if (tokens[i].contains("#"))
+				{
+					// get the index of where # is
+					int index = tokens[i].indexOf("#");
+					String hex = "";
+					// run until the the end of the string is reached, the character is ';', ')', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"')
+					{
+						// concatenate characters together
+						hex = hex + tokens[i].charAt(index);
+						index++;
+					}
+					// if the hex code is # and three characters,
+					// make it the full length of 7 characters
+					if (hex.length() == 4)
+					{
+						String temp = "#";
+						for (int j = 1; j < hex.length(); j++)
+						{
+							temp = temp + hex.charAt(j) + hex.charAt(j);
+						}
+						hex = temp;
+					}
+					// store color from hex value
+					color = Color.decode(hex);
+				}
+				// rgba( defines the start of the rgba values
+				else if (tokens[i].contains("rgba"))
+				{
+					// skip characters 'r', 'g', 'b', 'a', and '('
+					int index = tokens[i].indexOf("rgba") + 5;
+					int red = 0;
+					int green = 0;
+					int blue = 0;
+					int count = 1;
+					String num = "";
+					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
+					{
+						if (tokens[i].charAt(index) == ',')
+						{
+							// the entire number has been retrieved if a comma was reached
+							if (count == 1)
+							{
+								// 1 - store in red as int
+								red = Integer.parseInt(num.trim());
+								num = "";
+							}
+							if (count == 2)
+							{
+								// 2 - store in green as int
+								green = Integer.parseInt(num.trim());
+								num = "";
+							}
+							if (count == 3)
+							{
+								// 3 - store in blue as int
+								blue = Integer.parseInt(num.trim());
+								num = "";
+							}
+							count++;
+						}
+						else
+						{
+							// concatenate numbers into a string
+							num = num + tokens[i].charAt(index);
+						}
+						index++;
+					}
+					// store color using RGB
+					color = new Color(red, green, blue);
+
+				}
+				// rgb( defines the start of the rgb values
+				else if (tokens[i].contains("rgb"))
+				{
+					// skip characters 'r', 'g', 'b', and '('
+					int index = tokens[i].indexOf("rgb") + 4;
+					int red = 0;
+					int green = 0;
+					int blue = 0;
+					int count = 1;
+					String num = "";
+					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
+					{
+						if (tokens[i].charAt(index) == ',' || (count == 3 && tokens[i].charAt(index + 1) <= '9'
+								&& tokens[i].charAt(index + 1) >= '0'))
+						{
+							// a number is read if it a comma is reached or if the next character is not a number
+							if (count == 1)
+							{
+								// store in red as int
+								red = Integer.parseInt(num.trim());
+								num = "";
+							}
+							if (count == 2)
+							{
+								// store in green as int
+								green = Integer.parseInt(num.trim());
+								num = "";
+							}
+							if (count == 3)
+							{
+								// store in blue as int
+								blue = Integer.parseInt(num.trim());
+								num = "";
+							}
+							count++;
+						}
+						else
+						{
+							// concatenate numbers into a string
+							num = num + tokens[i].charAt(index);
+						}
+						index++;
+					}
+					// store color as RGB
+					color = new Color(red, green, blue);
+				}
+				// hsla( defines the start of the hsla values
+				else if (tokens[i].contains("hsla"))
+				{
+					// skip characters 'h', 's', 'l', 'a', and '('
+					int index = tokens[i].indexOf("hsla") + 5;
+					float hue = 0;
+					float saturation = 0;
+					float lightness = 0;
+					int count = 1;
+					String num = "";
+					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
+					{
+						if (tokens[i].charAt(index) == ',' || (count == 3 && (tokens[i].charAt(index + 1) == '%'
+								|| (tokens[i].charAt(index + 1) <= '9' && tokens[i].charAt(index + 1) >= '0'))))
+						{
+							// the entire number has been retrieved if a comma was reached, or if the count is 3 and:
+							// 1. next character is '%' or 2. next character is a number
+							if (count == 1)
+							{
+								// store hue as a float
+								hue = Float.parseFloat(num.trim());
+								num = "";
+							}
+							if (count == 2)
+							{
+								// store saturation as a float, removing percent sign and diving it by 100
+								saturation = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
+								num = "";
+							}
+							if (count == 3)
+							{
+								// store brightness as a float, removing percent sign and diving it by 100
+								lightness = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
+								num = "";
+							}
+							count++;
+						}
+						else
+						{
+							// concatenate the string of numbers
+							num = num + tokens[i].charAt(index);
+						}
+						index++;
+					}
+					color = new Color(Color.HSBtoRGB(hue, saturation, lightness));
+				}
+				// hsl( defines the start of the hsl values
+				else if (tokens[i].contains("hsl"))
+				{
+					// skip characters 'h', 's', 'l', and '('
+					int index = tokens[i].indexOf("hsl") + 4;
+					float hue = 0;
+					float saturation = 0;
+					float lightness = 0;
+					int count = 1;
+					String num = "";
+					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
+					{
+						if (tokens[i].charAt(index) == ',')
+						{
+							if (count == 1)
+							{
+								// store hue as a float
+								hue = Float.parseFloat(num.trim());
+								num = "";
+							}
+							if (count == 2)
+							{
+								// store saturation as a float, removing the % sign and dividing by 100
+								saturation = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
+								num = "";
+							}
+							if (count == 3)
+							{
+								// store brightness as a float, removing the % sign and dividing by 100
+								lightness = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
+								num = "";
+							}
+							count++;
+						}
+						else
+						{
+							// concatenate the string of numbers
+							num = num + tokens[i].charAt(index);
+						}
+						index++;
+					}
+					// store color as HSL
+					color = new Color(Color.HSBtoRGB(hue, saturation, lightness));
+				}
+				// pre-defined color as text i.e. red, blue, black, etc.
+				else
+				{
+					String colorName = "";
+					// skip the ':' character
+					int index = 1;
+					// run until the the end of the string is reached or the character is ';', '}', or '"'
+					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
+							&& tokens[i].charAt(index) != '}' && tokens[i].charAt(index) != '\"')
+					{
+						// concatenate each letter of the color
+						colorName = colorName + tokens[i].charAt(index);
+						index++;
+					}
+					if(colorName != null && !colorName.isEmpty())
+					{
+						// search for the color name from the list of HTML colors
+						// then retrieve the color's hex code from the second list
+						colorName = colorName.trim();
+						for (int j = 0; j < htmlColorNames.size(); j++)
+						{
+							if (htmlColorNames.get(j).equalsIgnoreCase(colorName))
+							{
+								// store color from hex code
+								color = Color.decode(htmlColorHex.get(j));
+								break;
+							}
+						}
+					}					
+				}
+				// exist early once color is found
+				if(color != null)
+				{
+					break;
+				}
+			}
+		}
+		return color;
+	}
+
+	/**
+	 * Checks to see if a color is similar to a baseline.
+	 * @param baseline The color that determines what the test should be like
+	 * @param test The color to be tested against the baseline
+	 * @param threshold The level of deviation from the baseline from 0 to 765
+	 * @return true if color is in threshold, false if color is outside
+	 *         threshold
+	 */
+	protected boolean checkColorInRange(Color baseline, Color test, int threshold)
+	{
+		boolean inRangeFlag = false;
+		// check if baseline is black
+		if (baseline.getRed() == 0 && baseline.getGreen() == 0 && baseline.getBlue() == 0)
+		{
+			// check test color to see if it is also black
+			if (test.getRed() == 0 && test.getGreen() == 0 && test.getBlue() == 0)
+			{
+				inRangeFlag = true;
+			}
+		}
+		// baseline color is not black
+		else
+		{
+			// make sure threshold is between 0 and 765
+			int level;
+			if (threshold > 765)
+			{
+				// threshold > 765, so set to max of 765
+				level = 765;
+			}
+			else if (threshold < 0)
+			{
+				// threshold is negative, so set to minimum of 0
+				level = 0;
+			}
+			else
+			{
+				// threshold in range, so keep value
+				level = threshold;
+			}
+
+			// calculate the difference in each color (RGB)
+			int red = Math.abs(baseline.getRed() - test.getRed());
+			int green = Math.abs(baseline.getGreen() - test.getGreen());
+			int blue = Math.abs(baseline.getBlue() - test.getBlue());
+			// check that the difference delta is less than the threshold level
+			if ((red + green + blue) <= level)
+			{
+				// if less than threshold, set to true
+				inRangeFlag = true;
+			}
+
+		}
+		return inRangeFlag;
+	}
+
 }

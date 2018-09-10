@@ -2,6 +2,7 @@ package content;
 
 import static org.junit.Assert.*;
 
+import java.awt.Color;
 import java.io.File;
 
 import org.jsoup.nodes.Document;
@@ -109,7 +110,7 @@ public class TestVisualFeatureDetection
 	}
 
 	/**
-	 * Tests to see if the font size of text in an HTML file can be found for an
+	 * Tests to see if the text font size in an HTML file can be found for an
 	 * article's title.
 	 */
 	@Test
@@ -117,41 +118,103 @@ public class TestVisualFeatureDetection
 	{
 		Elements allElements = vfd.getAllTextElements();
 		// paragraph tag is size 9 font so false
-		for(int i = 0; i < allElements.size(); i++)
+		for (int i = 0; i < allElements.size(); i++)
 		{
 			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
 		}
-		
 
 		// h2 tag at default size exists so true
 		// all three tags will return true (h1, h2, paragraph)
 		vfd.setFilePath("testset\\testPage2.html");
 		allElements = vfd.getAllTextElements();
-		for(int i = 0; i < allElements.size(); i++)
+		for (int i = 0; i < allElements.size(); i++)
 		{
 			assertTrue(vfd.articleTitleFontSizeDetection(allElements.get(i)));
 		}
-		
 
 		// h1 tag will have a size over 100 px so false
 		vfd.setFilePath("testset\\testPage3.html");
 		allElements = vfd.getAllTextElements();
-		for(int i = 0; i < allElements.size(); i++)
+		for (int i = 0; i < allElements.size(); i++)
 		{
 			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
 		}
-		
 
 		// pull style information from head of HTML file
 		// paragraph is font size 12 so false
 		vfd.setFilePath("testset\\testPage4.html");
 		allElements = vfd.getAllTextElements();
-		for(int i = 0; i < allElements.size(); i++)
+		for (int i = 0; i < allElements.size(); i++)
 		{
 			assertFalse(vfd.articleTitleFontSizeDetection(allElements.get(i)));
 		}
-		
+
+	}
+
+	/**
+	 * Checks if the color checker can match black as black
+	 */
+	@Test
+	public void testCheckColorInRangeBlack()
+	{
+		Color black = new Color(0,0,0);
+		assertTrue(vfd.checkColorInRange(black, new Color(0,0,0), 50));
 	}
 	
+	/**
+	 * Checks if the color checker can determine if colors are in the range of another color.
+	 */
+	@Test
+	public void testCheckColorInRangeBlue()
+	{
+		Color blue = Color.decode("#0000FF");
+		// check black against blue
+		assertFalse(vfd.checkColorInRange(blue, new Color(0,0,0), 150));
+		// check red against blue
+		assertFalse(vfd.checkColorInRange(blue, Color.decode("#FF0000"), 150));
+		// check green against blue
+		assertFalse(vfd.checkColorInRange(blue, Color.decode("#008000"), 150));
+		// check yellow against blue
+		assertFalse(vfd.checkColorInRange(blue, Color.decode("#FFFF00"), 150));
+		// check magenta against blue
+		assertFalse(vfd.checkColorInRange(blue, Color.decode("#FF00FF"), 150));
+		// check cyan against blue
+		assertFalse(vfd.checkColorInRange(blue, Color.decode("#00FFFF"), 150));
+		// check navy against blue
+		assertTrue(vfd.checkColorInRange(blue, Color.decode("#000080"), 150));
+	}
+	
+	/**
+	 * Tests to see if the text font color in an HTML file can be found for an
+	 * article's title.
+	 */
+	@Test
+	public void testArticleTitleFontColorDetection()
+	{
+		// check paragraph and two heading tags
+		vfd.setFilePath("testset\\testPage2.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			boolean flag = vfd.articleTitleFontColorDetection(allElements.get(i));
+			if (i == 0)
+			{
+				// paragraph is red
+				assertFalse(flag);
+			}
+			else
+			{
+				// indices 1 and 2: h1 is blue (in-line style) and h2 is black
+				// by default
+				assertTrue(flag);
+			}
+
+		}
+		
+		// h1 tag has no color set, so it will default to black
+		vfd.setFilePath(("testset\\testPage3.html"));
+		allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleTitleFontColorDetection(allElements.get(0)));
+	}
 
 }
