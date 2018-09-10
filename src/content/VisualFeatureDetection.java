@@ -201,11 +201,14 @@ public class VisualFeatureDetection
 				// rule 2
 				if (articleTitleFontColorDetection(allElements.get(i)))
 				{
-					// TODO: rules 3-6
-					titleExists = true;
-					break;
+					// rule 3
+					if(articleTitleTopHalfOfPageDetection(allElements.get(i)))
+					{
+						// TODO: rules 4-6
+						titleExists = true;
+						break;
+					}
 				}
-
 			}
 		}
 
@@ -778,6 +781,53 @@ public class VisualFeatureDetection
 
 		}
 		return inRangeFlag;
+	}
+	
+	/**
+	 * A method to determine whether the title is located in the top half of the web page.
+	 * To determine if it is in the top half, it finds the location of the given element node
+	 * in the list of all element nodes. Then, the given node's location is divided by the
+	 * total number of nodes to get a percentage.
+	 * @param testSet The given element node
+	 * @return true if the percentage < 50%, false if >= 50%
+	 */
+	protected boolean articleTitleTopHalfOfPageDetection(Element testSet)
+	{
+		// select all element nodes under the body
+		Elements domTree = doc.body().children().select("*");
+		// get the total number of nodes
+		int treeSize = domTree.size();
+		int nodeIndex = -1;
+		int i = 0;
+		// loops until the given node's index is found or the end of the tree is reached
+		while (nodeIndex == -1 && i < domTree.size())
+		{
+			// the given node was found in the tree
+			if(domTree.get(i).equals(testSet))
+			{
+				// save the node's index
+				nodeIndex = i;
+			}
+			else 
+			{
+				// increment if the node's location was not found
+				i++;
+			}
+		}
+		
+		// calculate percentage
+		double result = ((double) nodeIndex) / ((double)treeSize);
+		
+		if(result < 0.5)
+		{
+			// return true if < 50%
+			return true;
+		}
+		else
+		{
+			// return false if >= 50%
+			return false;
+		}
 	}
 
 }

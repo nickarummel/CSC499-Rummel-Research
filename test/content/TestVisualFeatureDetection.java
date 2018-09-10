@@ -216,5 +216,30 @@ public class TestVisualFeatureDetection
 		allElements = vfd.getAllTextElements();
 		assertTrue(vfd.articleTitleFontColorDetection(allElements.get(0)));
 	}
+	
+	/**
+	 * Tests whether elements are in the top half of the web page.
+	 */
+	@Test
+	public void testArticleTitleTopHalfOfPageDetection()
+	{
+		// check h2, paragraph, and h1 elements
+		vfd.setFilePath("testset\\testPage2.html");
+		Elements allElements = vfd.getAllTextElements();
+		for(int i = 0; i < allElements.size(); i++)
+		{
+			boolean flag = vfd.articleTitleTopHalfOfPageDetection(allElements.get(i));
+			if(i == 2)
+			{
+				// h2 (index 2) element is in the top half
+				assertTrue(flag);
+			}
+			else
+			{
+				// paragraph (index 0) and h1 (index 1) are not in the top half
+				assertFalse(flag);
+			}
+		}
+	}
 
 }
