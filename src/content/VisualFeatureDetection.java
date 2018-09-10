@@ -141,7 +141,7 @@ public class VisualFeatureDetection
 	{
 		try
 		{
-			Scanner csvReader = new Scanner(new File("colorsHTML.csv"));
+			Scanner csvReader = new Scanner(new File("data\\colorsHTML.csv"));
 			while (csvReader.hasNextLine())
 			{
 				String[] tokens = csvReader.nextLine().split(",");
