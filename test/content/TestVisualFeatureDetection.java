@@ -157,19 +157,20 @@ public class TestVisualFeatureDetection
 	@Test
 	public void testCheckColorInRangeBlack()
 	{
-		Color black = new Color(0,0,0);
-		assertTrue(vfd.checkColorInRange(black, new Color(0,0,0), 50));
+		Color black = new Color(0, 0, 0);
+		assertTrue(vfd.checkColorInRange(black, new Color(0, 0, 0), 50));
 	}
-	
+
 	/**
-	 * Checks if the color checker can determine if colors are in the range of another color.
+	 * Checks if the color checker can determine if colors are in the range of
+	 * another color.
 	 */
 	@Test
 	public void testCheckColorInRangeBlue()
 	{
 		Color blue = Color.decode("#0000FF");
 		// check black against blue
-		assertFalse(vfd.checkColorInRange(blue, new Color(0,0,0), 150));
+		assertFalse(vfd.checkColorInRange(blue, new Color(0, 0, 0), 150));
 		// check red against blue
 		assertFalse(vfd.checkColorInRange(blue, Color.decode("#FF0000"), 150));
 		// check green against blue
@@ -183,7 +184,7 @@ public class TestVisualFeatureDetection
 		// check navy against blue
 		assertTrue(vfd.checkColorInRange(blue, Color.decode("#000080"), 150));
 	}
-	
+
 	/**
 	 * Tests to see if the text font color in an HTML file can be found for an
 	 * article's title.
@@ -210,13 +211,13 @@ public class TestVisualFeatureDetection
 			}
 
 		}
-		
+
 		// h1 tag has no color set, so it will default to black
 		vfd.setFilePath(("testset\\testPage3.html"));
 		allElements = vfd.getAllTextElements();
 		assertTrue(vfd.articleTitleFontColorDetection(allElements.get(0)));
 	}
-	
+
 	/**
 	 * Tests whether elements are in the top half of the web page.
 	 */
@@ -226,10 +227,10 @@ public class TestVisualFeatureDetection
 		// check h2, paragraph, and h1 elements
 		vfd.setFilePath("testset\\testPage2.html");
 		Elements allElements = vfd.getAllTextElements();
-		for(int i = 0; i < allElements.size(); i++)
+		for (int i = 0; i < allElements.size(); i++)
 		{
 			boolean flag = vfd.articleTitleTopHalfOfPageDetection(allElements.get(i));
-			if(i == 2)
+			if (i == 2)
 			{
 				// h2 (index 2) element is in the top half
 				assertTrue(flag);
@@ -240,6 +241,118 @@ public class TestVisualFeatureDetection
 				assertFalse(flag);
 			}
 		}
+	}
+
+	/**
+	 * Tests that the title is located near the top and the user does not need
+	 * to page down to see to see the title.
+	 */
+	@Test
+	public void testArticleTitlePageDownDetection()
+	{
+		// no need to page down for any text elements in this case,
+		// all are near the top
+		vfd.setFilePath("testset\\testPage2.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleTitlePageDownDetection(allElements.get(i)));
+		}
+
+		// file contains a paragraph at the top that will be true (meaning no
+		// page down) then a heading after about 50 line breaks that will be
+		// false (meaning page down required)
+		vfd.setFilePath("testset\\testPage7.html");
+		allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleTitlePageDownDetection(allElements.get(0)));
+		assertFalse(vfd.articleTitlePageDownDetection(allElements.get(1)));
+
+	}
+
+	/**
+	 * Tests that the length of a title is between 8 and 50 characters.
+	 */
+	@Test
+	public void testArticleTitleTextLengthDetection()
+	{
+		// check h2, paragraph, and h1 elements in character range
+		vfd.setFilePath("testset\\testPage2.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleTitleTextLengthDetection(allElements.get(i)));
+		}
+
+		// case: a title longer than 50 characters
+		vfd.setFilePath("testset\\testPage5.html");
+		allElements = vfd.getAllTextElements();
+		assertFalse(vfd.articleTitleTextLengthDetection(allElements.get(0)));
+
+		// case: a title less than 8 characters
+		vfd.setFilePath("testset\\testPage6.html");
+		allElements = vfd.getAllTextElements();
+		assertFalse(vfd.articleTitleTextLengthDetection(allElements.get(0)));
+	}
+
+	/**
+	 * Tests that the title does not contain a hyper link.
+	 */
+	@Test
+	public void testArticleTitleHyperLinkDetection()
+	{
+		// all three elements (p, h1, h2) are not linked so it will return true
+		vfd.setFilePath("testset\\testPage2.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleTitleHyperLinkDetection(allElements.get(i)));
+		}
+
+		// border case: link will be a parent to the current node
+		vfd.setFilePath("testset\\testPage5.html");
+		allElements = vfd.getAllTextElements();
+		assertFalse(vfd.articleTitleHyperLinkDetection(allElements.get(0)));
+
+		// border case: link will be a child node to the current node
+		vfd.setFilePath("testset\\testPage6.html");
+		allElements = vfd.getAllTextElements();
+		assertFalse(vfd.articleTitleHyperLinkDetection(allElements.get(0)));
+
+	}
+
+	/**
+	 * Tests all title rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleTitleExists()
+	{
+		// testPage1.html - no title
+		assertFalse(vfd.articleTitleExists());
+
+		// testPage2.html - has title
+		vfd.setFilePath("testset\\testPage2.html");
+		assertTrue(vfd.articleTitleExists());
+
+		// testPage3.html - no title
+		vfd.setFilePath("testset\\testPage3.html");
+		assertFalse(vfd.articleTitleExists());
+
+		// testPage4.html - no title
+		vfd.setFilePath("testset\\testPage4.html");
+		assertFalse(vfd.articleTitleExists());
+
+		// testPage5.html - no title
+		vfd.setFilePath("testset\\testPage5.html");
+		assertFalse(vfd.articleTitleExists());
+
+		// testPage6.html - no title
+		vfd.setFilePath("testset\\testPage6.html");
+		assertFalse(vfd.articleTitleExists());
+
+		// testPage7.html - no title
+		vfd.setFilePath("testset\\testPage7.html");
+		assertFalse(vfd.articleTitleExists());
+
 	}
 
 }

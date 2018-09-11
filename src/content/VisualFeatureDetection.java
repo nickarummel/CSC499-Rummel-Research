@@ -10,6 +10,7 @@ import java.util.Scanner;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 /**
@@ -202,11 +203,26 @@ public class VisualFeatureDetection
 				if (articleTitleFontColorDetection(allElements.get(i)))
 				{
 					// rule 3
-					if(articleTitleTopHalfOfPageDetection(allElements.get(i)))
+					if (articleTitleTopHalfOfPageDetection(allElements.get(i)))
 					{
-						// TODO: rules 4-6
-						titleExists = true;
-						break;
+						// rule 4
+						if (articleTitlePageDownDetection(allElements.get(i)))
+						{
+							// rule 5
+							if (articleTitleTextLengthDetection(allElements.get(i)))
+							{
+								// rule 6
+								if (articleTitleHyperLinkDetection(allElements.get(i)))
+								{
+									// all six rules were passed, so title
+									// exists. set flag to true and break out of
+									// loop
+									titleExists = true;
+									break;
+								}
+							}
+						}
+
 					}
 				}
 			}
@@ -452,7 +468,8 @@ public class VisualFeatureDetection
 		}
 
 		// check if color is black or blue
-		if(checkColorInRange(Color.decode("#000000"), fontColor, 150) || checkColorInRange(Color.decode("#0000FF"), fontColor, 150))
+		if (checkColorInRange(Color.decode("#000000"), fontColor, 150)
+				|| checkColorInRange(Color.decode("#0000FF"), fontColor, 150))
 		{
 			detectFlag = true;
 		}
@@ -475,7 +492,8 @@ public class VisualFeatureDetection
 					// get the index of where # is
 					int index = tokens[i].indexOf("#");
 					String hex = "";
-					// run until the the end of the string is reached, the character is ';', ')', or '"'
+					// run until the the end of the string is reached, the
+					// character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"')
 					{
@@ -507,13 +525,15 @@ public class VisualFeatureDetection
 					int blue = 0;
 					int count = 1;
 					String num = "";
-					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					// run until the the end of the string is reached, the count
+					// is 3, the character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
 					{
 						if (tokens[i].charAt(index) == ',')
 						{
-							// the entire number has been retrieved if a comma was reached
+							// the entire number has been retrieved if a comma
+							// was reached
 							if (count == 1)
 							{
 								// 1 - store in red as int
@@ -555,14 +575,16 @@ public class VisualFeatureDetection
 					int blue = 0;
 					int count = 1;
 					String num = "";
-					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					// run until the the end of the string is reached, the count
+					// is 3, the character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
 					{
 						if (tokens[i].charAt(index) == ',' || (count == 3 && tokens[i].charAt(index + 1) <= '9'
 								&& tokens[i].charAt(index + 1) >= '0'))
 						{
-							// a number is read if it a comma is reached or if the next character is not a number
+							// a number is read if it a comma is reached or if
+							// the next character is not a number
 							if (count == 1)
 							{
 								// store in red as int
@@ -603,15 +625,18 @@ public class VisualFeatureDetection
 					float lightness = 0;
 					int count = 1;
 					String num = "";
-					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					// run until the the end of the string is reached, the count
+					// is 3, the character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
 					{
 						if (tokens[i].charAt(index) == ',' || (count == 3 && (tokens[i].charAt(index + 1) == '%'
 								|| (tokens[i].charAt(index + 1) <= '9' && tokens[i].charAt(index + 1) >= '0'))))
 						{
-							// the entire number has been retrieved if a comma was reached, or if the count is 3 and:
-							// 1. next character is '%' or 2. next character is a number
+							// the entire number has been retrieved if a comma
+							// was reached, or if the count is 3 and:
+							// 1. next character is '%' or 2. next character is
+							// a number
 							if (count == 1)
 							{
 								// store hue as a float
@@ -620,13 +645,15 @@ public class VisualFeatureDetection
 							}
 							if (count == 2)
 							{
-								// store saturation as a float, removing percent sign and diving it by 100
+								// store saturation as a float, removing percent
+								// sign and diving it by 100
 								saturation = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
 								num = "";
 							}
 							if (count == 3)
 							{
-								// store brightness as a float, removing percent sign and diving it by 100
+								// store brightness as a float, removing percent
+								// sign and diving it by 100
 								lightness = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
 								num = "";
 							}
@@ -651,7 +678,8 @@ public class VisualFeatureDetection
 					float lightness = 0;
 					int count = 1;
 					String num = "";
-					// run until the the end of the string is reached, the count is 3, the character is ';', ')', or '"'
+					// run until the the end of the string is reached, the count
+					// is 3, the character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"' && count <= 3)
 					{
@@ -665,13 +693,15 @@ public class VisualFeatureDetection
 							}
 							if (count == 2)
 							{
-								// store saturation as a float, removing the % sign and dividing by 100
+								// store saturation as a float, removing the %
+								// sign and dividing by 100
 								saturation = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
 								num = "";
 							}
 							if (count == 3)
 							{
-								// store brightness as a float, removing the % sign and dividing by 100
+								// store brightness as a float, removing the %
+								// sign and dividing by 100
 								lightness = (Float.parseFloat(num.trim().substring(0, num.length() - 1)) / 100);
 								num = "";
 							}
@@ -693,7 +723,8 @@ public class VisualFeatureDetection
 					String colorName = "";
 					// skip the ':' character
 					int index = 1;
-					// run until the the end of the string is reached or the character is ';', '}', or '"'
+					// run until the the end of the string is reached or the
+					// character is ';', '}', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
 							&& tokens[i].charAt(index) != '}' && tokens[i].charAt(index) != '\"')
 					{
@@ -701,10 +732,12 @@ public class VisualFeatureDetection
 						colorName = colorName + tokens[i].charAt(index);
 						index++;
 					}
-					if(colorName != null && !colorName.isEmpty())
+					if (colorName != null && !colorName.isEmpty())
 					{
-						// search for the color name from the list of HTML colors
-						// then retrieve the color's hex code from the second list
+						// search for the color name from the list of HTML
+						// colors
+						// then retrieve the color's hex code from the second
+						// list
 						colorName = colorName.trim();
 						for (int j = 0; j < htmlColorNames.size(); j++)
 						{
@@ -715,10 +748,10 @@ public class VisualFeatureDetection
 								break;
 							}
 						}
-					}					
+					}
 				}
 				// exist early once color is found
-				if(color != null)
+				if (color != null)
 				{
 					break;
 				}
@@ -782,12 +815,13 @@ public class VisualFeatureDetection
 		}
 		return inRangeFlag;
 	}
-	
+
 	/**
-	 * A method to determine whether the title is located in the top half of the web page.
-	 * To determine if it is in the top half, it finds the location of the given element node
-	 * in the list of all element nodes. Then, the given node's location is divided by the
-	 * total number of nodes to get a percentage.
+	 * A method to determine whether the title is located in the top half of the
+	 * web page. To determine if it is in the top half, it finds the location of
+	 * the given element node in the list of all element nodes. Then, the given
+	 * node's location is divided by the total number of nodes to get a
+	 * percentage.
 	 * @param testSet The given element node
 	 * @return true if the percentage < 50%, false if >= 50%
 	 */
@@ -799,26 +833,27 @@ public class VisualFeatureDetection
 		int treeSize = domTree.size();
 		int nodeIndex = -1;
 		int i = 0;
-		// loops until the given node's index is found or the end of the tree is reached
+		// loops until the given node's index is found or the end of the tree is
+		// reached
 		while (nodeIndex == -1 && i < domTree.size())
 		{
 			// the given node was found in the tree
-			if(domTree.get(i).equals(testSet))
+			if (domTree.get(i).equals(testSet))
 			{
 				// save the node's index
 				nodeIndex = i;
 			}
-			else 
+			else
 			{
 				// increment if the node's location was not found
 				i++;
 			}
 		}
-		
+
 		// calculate percentage
-		double result = ((double) nodeIndex) / ((double)treeSize);
-		
-		if(result < 0.5)
+		double result = ((double) nodeIndex) / ((double) treeSize);
+
+		if (result < 0.5)
 		{
 			// return true if < 50%
 			return true;
@@ -828,6 +863,137 @@ public class VisualFeatureDetection
 			// return false if >= 50%
 			return false;
 		}
+	}
+
+	/**
+	 * A method to determine if the title is located near the top of the screen.
+	 * This is determined by converting tags to line breaks and seeing if the
+	 * location of the current text is less than the number of lines that can be
+	 * shown on a page.
+	 * @param textSet the current Element node
+	 * @return true if the title can be seen without paging down, false if page
+	 *         down is needed to see title
+	 */
+	protected boolean articleTitlePageDownDetection(Element textSet)
+	{
+		boolean pageDownFlag = false;
+
+		// array contains tags to be converted to new lines
+		String[] htmlTagsToConvert =
+		{ "br", "p", "h1", "h2", "h3", "h4", "h5", "h6", "div", "td", "li" };
+		// clone the DOM tree
+		Document clone = doc.clone();
+		// convert each tag to new line ('\n')
+		for (int i = 0; i < htmlTagsToConvert.length; i++)
+		{
+			clone.select(htmlTagsToConvert[i]).before("\\n");
+		}
+		String html = clone.html().replaceAll("\\\\n", "\n");
+		// run Jsoup's clean method to strip out all tags but keep new lines
+		String allText = Jsoup.clean(html, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+		// split text into tokens based on new line
+		String[] tokens = allText.split("\n");
+		// find which token has the current node's text and save that index
+		int index = -1;
+		for (int i = 0; i < tokens.length; i++)
+		{
+			if (tokens[i].contains(textSet.text()))
+			{
+				index = i;
+			}
+		}
+		// check to see if the node is in the first page of web page
+		// (by looking at whether there was less than 40 lines)
+		if (index > -1 && index <= 40)
+		{
+			// if true, set flag to false
+			pageDownFlag = true;
+		}
+
+		return pageDownFlag;
+	}
+
+	/**
+	 * A method to determine if the text of an element's node (without
+	 * tags/attributes) has a text length between 8 and 50 characters.
+	 * @param textSet The current Element node to check
+	 * @return true if the text falls in the range of 8 and 50 characters, false
+	 *         if is outside that range
+	 */
+	protected boolean articleTitleTextLengthDetection(Element textSet)
+	{
+		boolean lengthFlag = false;
+		// get the node's text without tags and attributes
+		String nodeText = textSet.text();
+		// check if the text's length falls in range
+		if (nodeText.length() > 8 && nodeText.length() < 50)
+		{
+			// true, so set flag
+			lengthFlag = true;
+		}
+		return lengthFlag;
+	}
+
+	/**
+	 * A method to determine if the title is a hyper link.
+	 * @param textSet The current Element node to check
+	 * @return true if the title is not a hyper link based on requirements,
+	 *         return false if the title is a hyper link.
+	 */
+	protected boolean articleTitleHyperLinkDetection(Element textSet)
+	{
+		boolean linkFlag = true;
+		// get all nodes that contain a link (a tag)
+		Elements hyperlinkNodes = doc.getElementsByTag("a");
+		// get all parent nodes up to root from current element to check if any
+		// surround nodes are links
+		Elements parentNodes = textSet.parents();
+		// get all children nodes from current element to check if any children
+		// are links
+		Elements childNodes = textSet.children();
+		// outer loop: loop through all nodes containing links
+		for (int i = 0; i < hyperlinkNodes.size(); i++)
+		{
+			// inner loop #1: loop through all parent nodes
+			for (int j = 0; j < parentNodes.size(); j++)
+			{
+				// checks if any parent nodes match the current node containing
+				// a link
+				if (parentNodes.get(j).equals(hyperlinkNodes.get(i)))
+				{
+					// if the nodes match, set flag to true and break from inner
+					// loop
+					linkFlag = false;
+					break;
+				}
+			}
+			// check if flag is true from previous loop
+			if (linkFlag == false)
+			{
+				// if flag is true, break from outer loop
+				break;
+			}
+			// inner loop #2: loop through all children nodes
+			for (int j = 0; j < childNodes.size(); j++)
+			{
+				// checks if any child nodes match the current node containing a
+				// link
+				if (childNodes.get(j).equals(hyperlinkNodes.get(i)))
+				{
+					// if the nodes match, set flag to true and break from inner
+					// loop
+					linkFlag = false;
+					break;
+				}
+			}
+			// check if flag is true from previous loop
+			if (linkFlag == false)
+			{
+				// if flag is true, break from outer loop
+				break;
+			}
+		}
+		return linkFlag;
 	}
 
 }
