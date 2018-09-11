@@ -888,7 +888,7 @@ public class VisualFeatureDetection
 		{
 			clone.select(htmlTagsToConvert[i]).before("\\n");
 		}
-		String html = clone.html().replaceAll("\\\\n", "\n");
+		String html = clone.body().html().replaceAll("\\\\n", "\n");
 		// run Jsoup's clean method to strip out all tags but keep new lines
 		String allText = Jsoup.clean(html, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
 		// split text into tokens based on new line
