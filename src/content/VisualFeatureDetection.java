@@ -252,16 +252,32 @@ public class VisualFeatureDetection
 
 	/**
 	 * Title detection's rule 1: determine that the font size is between 15 and
-	 * 45 pixels. The font size can be found in-line as a style attribute or as
-	 * data under the style tag of the HTML's head. Additionally, the font size
-	 * can be defined as three different measurement units: percentage, em, or
-	 * pixels.
+	 * 45 pixels.
 	 * @param textSet The current element that has a paragraph or heading tag
 	 * @return true if an Element's font size is in the range.
 	 */
 	protected boolean articleTitleFontSizeDetection(Element textSet)
 	{
-		boolean detectFlag = false;
+		double min = 15.0;
+		double max = 45.0;
+		return fontSizeDetection(textSet, min, max);
+
+	}
+
+	/**
+	 * Determines the font size of a given Element node. The font size can be
+	 * found in-line as a style attribute or as data under the style tag of the
+	 * HTML's head. Additionally, the font size can be defined as three
+	 * different measurement units: percentage, em, or pixels.
+	 * @param textSet The current element node that has a paragraph or heading
+	 *            tag
+	 * @param min the minimum font size as a double
+	 * @param max the maximum font size as a double
+	 * @return true if the element's text is within the font size range,
+	 *         otherwise false
+	 */
+	public boolean fontSizeDetection(Element textSet, double min, double max)
+	{
 		// get the style's element node form the HTML head
 		Elements headNode = doc.select("head");
 		// styleNode will be null if no CSS data was found in the HTML's head
@@ -285,7 +301,22 @@ public class VisualFeatureDetection
 		{
 			// tokenize to get the font size
 			String[] fontSizeStyle = doc.select("style").first().data().split("font-size");
-			size = extractFontSizeFromTokens(fontSizeStyle);
+			// find the token with the HTML Tag (p, h1-h6, etc), and the
+			// font value is in the next token (i+1)
+			String[] onlyToken = new String[1];
+			for (int i = 0; i < fontSizeStyle.length; i++)
+			{
+				// make sure the tag exists and the token is not the last in the
+				// array
+				if (styleDataContainsElement(curElement, fontSizeStyle[i]) && (i + 1) < fontSizeStyle.length)
+				{
+					// save token in separate variable
+					onlyToken[0] = fontSizeStyle[i + 1];
+					break;
+				}
+			}
+
+			size = extractFontSizeFromTokens(onlyToken);
 		}
 		// no style has been found
 		else
@@ -301,12 +332,14 @@ public class VisualFeatureDetection
 			}
 		}
 		// check if font size is in range
-		if (size >= 15.0 && size <= 45.0)
+		if (size >= min && size <= max)
 		{
-			detectFlag = true;
+			return true;
 		}
-		return detectFlag;
-
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -431,6 +464,14 @@ public class VisualFeatureDetection
 		return result;
 	}
 
+	/**
+	 * Title detection rule #2: check to see if the Element's text is a black or
+	 * blue font color. It can be checked using HTML color codes, RGB/RGBA, and
+	 * HSL/HSLA. The color can also be found from in-line or style tags.
+	 * @param textSet the current Element node that is a paragraph or heading
+	 *            tag
+	 * @return true if the color is black or blue, false if another color
+	 */
 	protected boolean articleTitleFontColorDetection(Element textSet)
 	{
 		boolean detectFlag = false;
@@ -476,6 +517,12 @@ public class VisualFeatureDetection
 		return detectFlag;
 	}
 
+	/**
+	 * Extracts the color (as a color code, hex, RGB, etc.) from the HTML.
+	 * @param tokens The parsed strings of HTML where the color information is
+	 *            stored.
+	 * @return the color as a Color object
+	 */
 	private Color extractColorFromTokens(String[] tokens)
 	{
 		Color color = null;
@@ -994,6 +1041,19 @@ public class VisualFeatureDetection
 			}
 		}
 		return linkFlag;
+	}
+
+	/**
+	 * Date detection rule #1: see if the Element's text font size is less than
+	 * or equal to 10 pixels.
+	 * @param textSet the current Element containing a paragraph or heading tag
+	 * @return true if the font size <= 10 px, otherwise false
+	 */
+	boolean articlePublicationDateFontSizeDetection(Element textSet)
+	{
+		double min = 0.0;
+		double max = 10.0;
+		return fontSizeDetection(textSet, min, max);
 	}
 
 }

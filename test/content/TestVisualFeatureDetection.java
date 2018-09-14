@@ -352,6 +352,33 @@ public class TestVisualFeatureDetection
 		// testPage7.html - no title
 		vfd.setFilePath("testset\\testPage7.html");
 		assertFalse(vfd.articleTitleExists());
+	}
+
+	/**
+	 * Tests that the publication date's font size can be detected and is found
+	 * to be less than or equal to 10 px.
+	 */
+	@Test
+	public void testArticlePublicationDateFontSizeDetection()
+	{
+		// contains 3 tags: p tag at 12px, h5 tag at 9px
+		// and h6 tag at default size (approx. 10.7px)
+		vfd.setFilePath("testset\\testPage8.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag at index 0, h6 at index 2
+			// will both return false
+			if (i == 0 || i == 2)
+			{
+				assertFalse(vfd.articlePublicationDateFontSizeDetection(allElements.get(i)));
+			}
+			else
+			{
+				// h5 tag at index 1 will return true
+				assertTrue(vfd.articlePublicationDateFontSizeDetection(allElements.get(i)));
+			}
+		}
 
 	}
 
