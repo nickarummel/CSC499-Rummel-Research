@@ -382,4 +382,30 @@ public class TestVisualFeatureDetection
 
 	}
 
+	/**
+	 * Tests that the publication date's font color can be detected and it is
+	 * either black, blue, or gray.
+	 */
+	@Test
+	public void testArticlePublicationDateFontColorDetection()
+	{
+		// contains 3 tags: p tag is red, h5 tag is gray
+		// and h6 tag at default color (black)
+		vfd.setFilePath("testset\\testPage8.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag at index 0 will return false
+			if (i == 0)
+			{
+				assertFalse(vfd.articlePublicationDateFontColorDetection(allElements.get(i)));
+			}
+			else
+			{
+				// h5 and h6 tags at index 1 and 2 will return true
+				assertTrue(vfd.articlePublicationDateFontColorDetection(allElements.get(i)));
+			}
+		}
+	}
+
 }

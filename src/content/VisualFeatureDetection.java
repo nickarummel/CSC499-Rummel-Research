@@ -474,6 +474,22 @@ public class VisualFeatureDetection
 	 */
 	protected boolean articleTitleFontColorDetection(Element textSet)
 	{
+		Color[] articleColors = new Color[2];
+		articleColors[0] = Color.decode("#000000");
+		articleColors[1] = Color.decode("#0000FF");
+		return fontColorDetection(textSet, articleColors);
+	}
+
+	/**
+	 * To detect the font color of a given Element, the style information is
+	 * pulled from in-line attributes and the head's CSS information.
+	 * @param textSet The current Element node
+	 * @param colors The list of colors to check for
+	 * @return true if the color from the HTML matches one of the colors listed,
+	 *         else false
+	 */
+	public boolean fontColorDetection(Element textSet, Color[] colors)
+	{
 		boolean detectFlag = false;
 
 		// get the style's element node form the HTML head
@@ -499,7 +515,22 @@ public class VisualFeatureDetection
 		{
 			// tokenize to get the font size
 			String[] split = doc.select("style").first().data().split("color");
-			fontColor = extractColorFromTokens(split);
+
+			// find the token with the HTML Tag (p, h1-h6, etc), and the
+			// font value is in the next token (i+1)
+			String[] onlyToken = new String[1];
+			for (int i = 0; i < split.length; i++)
+			{
+				// make sure the tag exists and the token is not the last in the
+				// array
+				if (styleDataContainsElement(curElement, split[i]) && (i + 1) < split.length)
+				{
+					// save token in separate variable
+					onlyToken[0] = split[i + 1];
+					break;
+				}
+			}
+			fontColor = extractColorFromTokens(onlyToken);
 		}
 
 		if (fontColor == null)
@@ -509,11 +540,15 @@ public class VisualFeatureDetection
 		}
 
 		// check if color is black or blue
-		if (checkColorInRange(Color.decode("#000000"), fontColor, 150)
-				|| checkColorInRange(Color.decode("#0000FF"), fontColor, 150))
+		for (int i = 0; i < colors.length; i++)
 		{
-			detectFlag = true;
+			if (checkColorInRange(colors[i], fontColor, 150))
+			{
+				detectFlag = true;
+				break;
+			}
 		}
+
 		return detectFlag;
 	}
 
@@ -1049,11 +1084,26 @@ public class VisualFeatureDetection
 	 * @param textSet the current Element containing a paragraph or heading tag
 	 * @return true if the font size <= 10 px, otherwise false
 	 */
-	boolean articlePublicationDateFontSizeDetection(Element textSet)
+	protected boolean articlePublicationDateFontSizeDetection(Element textSet)
 	{
 		double min = 0.0;
 		double max = 10.0;
 		return fontSizeDetection(textSet, min, max);
+	}
+
+	/**
+	 * Date detection rule #2: see if the Element's text font color is black,
+	 * blue, or gray.
+	 * @param textSet the current ELement containing a paragraph or heading tag
+	 * @return true if the font color is black, blue, or gray, else falseF
+	 */
+	protected boolean articlePublicationDateFontColorDetection(Element textSet)
+	{
+		Color[] articleColors = new Color[3];
+		articleColors[0] = Color.decode("#000000");
+		articleColors[1] = Color.decode("#0000FF");
+		articleColors[2] = Color.decode("#808080");
+		return fontColorDetection(textSet, articleColors);
 	}
 
 }
