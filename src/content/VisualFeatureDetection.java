@@ -74,6 +74,13 @@ public class VisualFeatureDetection
 	protected ArrayList<String> htmlColorHex;
 
 	/**
+	 * An instance variable that contains each month of the year as an
+	 * abbreviation.
+	 */
+	protected final String[] MONTHABBR =
+	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+	/**
 	 * Constructor for class that will immediately update the DOM tree from file
 	 * path parameter.
 	 * @param path The file path to be stored into the File object
@@ -242,6 +249,10 @@ public class VisualFeatureDetection
 		Elements allElements = new Elements();
 		// get all elements with paragraph tag
 		allElements.addAll(doc.getElementsByTag("p"));
+		// get all elements with a span tag
+		allElements.addAll(doc.getElementsByTag("span"));
+		// get all elements with a time tag
+		allElements.addAll(doc.getElementsByTag("time"));
 		// get all elements with heading tags
 		for (int i = 1; i <= 6; i++)
 		{
@@ -1004,11 +1015,23 @@ public class VisualFeatureDetection
 	 */
 	protected boolean articleTitleTextLengthDetection(Element textSet)
 	{
+		return textLengthDetection(textSet, 8, 50);
+	}
+
+	/**
+	 * Detects the text length of a given Element node.
+	 * @param textSet The current Element node
+	 * @param min The minimum value as an integer
+	 * @param max The maximum value as an integer
+	 * @return true if
+	 */
+	public boolean textLengthDetection(Element textSet, int min, int max)
+	{
 		boolean lengthFlag = false;
 		// get the node's text without tags and attributes
 		String nodeText = textSet.text();
 		// check if the text's length falls in range
-		if (nodeText.length() > 8 && nodeText.length() < 50)
+		if (nodeText.length() > min && nodeText.length() < max)
 		{
 			// true, so set flag
 			lengthFlag = true;
@@ -1023,6 +1046,17 @@ public class VisualFeatureDetection
 	 *         return false if the title is a hyper link.
 	 */
 	protected boolean articleTitleHyperLinkDetection(Element textSet)
+	{
+		return hyperLinkDetection(textSet);
+	}
+
+	/**
+	 * Determines whether a node's text is hyper linked.
+	 * @param textSet The current Element node to check
+	 * @return true if the node is not hyper linked based on requirements,
+	 *         return false if the node's text is hyper linked.
+	 */
+	private boolean hyperLinkDetection(Element textSet)
 	{
 		boolean linkFlag = true;
 		// get all nodes that contain a link (a tag)
@@ -1079,6 +1113,52 @@ public class VisualFeatureDetection
 	}
 
 	/**
+	 * Method to determine if the title exists using 6 rules for each eligible
+	 * set of data. 1. Font size is no larger than 10 px 2. Font color is black,
+	 * blue, or gray 3. Text length is no longer than 18 characters 4. The text
+	 * is formatted as a date 5. The text is not hyperlinked
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articlePublicationDateExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean pubDateExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articlePublicationDateFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articlePublicationDateFontColorDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articlePublicationDateTextLengthDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articlePublicationDateFormatDetection(allElements.get(i)))
+						{
+							// rule 5
+							if (articlePublicationDateHyperLinkDetection(allElements.get(i)))
+							{
+								// all five rules were passed, so date exists.
+								// set flag to true and break out of loop
+								pubDateExists = true;
+								break;
+
+							}
+						}
+
+					}
+				}
+			}
+		}
+
+		return pubDateExists;
+
+	}
+
+	/**
 	 * Date detection rule #1: see if the Element's text font size is less than
 	 * or equal to 10 pixels.
 	 * @param textSet the current Element containing a paragraph or heading tag
@@ -1094,8 +1174,8 @@ public class VisualFeatureDetection
 	/**
 	 * Date detection rule #2: see if the Element's text font color is black,
 	 * blue, or gray.
-	 * @param textSet the current ELement containing a paragraph or heading tag
-	 * @return true if the font color is black, blue, or gray, else falseF
+	 * @param textSet the current Element containing a paragraph or heading tag
+	 * @return true if the font color is black, blue, or gray, else false
 	 */
 	protected boolean articlePublicationDateFontColorDetection(Element textSet)
 	{
@@ -1106,4 +1186,214 @@ public class VisualFeatureDetection
 		return fontColorDetection(textSet, articleColors);
 	}
 
+	/**
+	 * Date detection rule #3: see if the Element's text has a length less than
+	 * 18 characters.
+	 * @param textSet The current Element containing a paragraph or heading tag
+	 * @return true if the text length is less than 18 characters, else false
+	 */
+	protected boolean articlePublicationDateTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 0, 19);
+	}
+
+	/**
+	 * Date detection rule #3: see if the Element's text is formatted as a date.
+	 * This method can detect numerical date values (ie. mm/dd/yyyy) and dates
+	 * written out as text (ie. month dd, yyyy).
+	 * @param textSet The current Element node
+	 * @return true if the Element's text matches one of the date formats,
+	 *         otherwise false
+	 */
+	protected boolean articlePublicationDateFormatDetection(Element textSet)
+	{
+		boolean dateFlag = false;
+		// save text from Element node
+		String text = textSet.text().trim();
+		int loc = -1;
+		// see if text contains one of the months as an abbreviation
+		for (int i = 0; i < MONTHABBR.length; i++)
+		{
+			if (text.contains(MONTHABBR[i]))
+			{
+				// text contains a month, store the index of where the month
+				// starts
+				loc = text.indexOf(MONTHABBR[i]);
+				break;
+			}
+		}
+		// month found (index variable, loc, is set to 0 or above)
+		if (loc > -1)
+		{
+			// the date does not come before the month
+			if (checkForDayBeforeMonth(text, loc))
+			{
+				// format: dd month (may have yyyy)
+				dateFlag = true;
+			}
+			else
+			{
+				for (int i = loc; i < text.length(); i++)
+				{
+					if (text.charAt(i) == ' ')
+					{
+						// month dd, yyyy - check next 8 characters for format
+						if (i + 8 < text.length())
+						{
+							if (text.charAt(i + 1) >= '0' && text.charAt(i + 1) <= '9')
+							{
+								if (text.charAt(i + 2) >= '0' && text.charAt(i + 2) <= '9')
+								{
+									if (text.charAt(i + 3) == ',' && text.charAt(i + 4) == ' ')
+									{
+										int trueCount = 0;
+										for (int j = 1; j <= 4; j++)
+										{
+											if (text.charAt(i + j + 4) >= '0' && text.charAt(i + j + 4) <= '9')
+											{
+												trueCount++;
+											}
+										}
+										if (trueCount == 4)
+										{
+											dateFlag = true;
+										}
+									}
+								}
+							}
+						}
+						// month d, yyyy - check next 7 characters for format
+						if (dateFlag == false && i + 7 < text.length())
+						{
+							if (text.charAt(i + 1) >= '0' && text.charAt(i + 1) <= '9')
+							{
+								if (text.charAt(i + 2) == ',' && text.charAt(i + 3) == ' ')
+								{
+									int trueCount = 0;
+									for (int j = 1; j <= 4; j++)
+									{
+										if (text.charAt(i + j + 3) >= '0' && text.charAt(i + j + 3) <= '9')
+										{
+											trueCount++;
+										}
+									}
+									if (trueCount == 4)
+									{
+										dateFlag = true;
+									}
+
+								}
+							}
+						}
+						// month dd - check next 2 characters for format
+						if (dateFlag == false && i + 2 < text.length())
+						{
+							if (text.charAt(i + 1) >= '0' && text.charAt(i + 1) <= '9')
+							{
+								if (text.charAt(i + 2) >= '0' && text.charAt(i + 2) <= '9')
+								{
+									dateFlag = true;
+								}
+
+							}
+						}
+						// month d - check next character for format
+						if (dateFlag == false && i + 1 < text.length() && text.charAt(i + 1) >= '0'
+								&& text.charAt(i + 1) <= '9')
+						{
+							dateFlag = true;
+
+						}
+						// break because next space has been found
+						break;
+					}
+				}
+			}
+		}
+		// no month found (index variable, loc, is null or -1)
+		else
+		{
+			// split the string based on a space
+			String[] tokens = text.split(" ");
+			// check each token
+			for (int i = 0; i < tokens.length; i++)
+			{
+				// must contain at least 6 characters(m/d/yy)
+				// but no more than 10 characters (mm/dd/yyyy)
+				if (tokens[i].length() >= 6 && tokens[i].length() <= 10)
+				{
+					// count the number of '/' or '-' and number of integer
+					// characters
+					// found in the string token
+					int countSlash = 0;
+					int countDash = 0;
+					int countNum = 0;
+					for (int j = 0; j < tokens[i].length(); j++)
+					{
+						if (tokens[i].charAt(j) == '/')
+						{
+							countSlash++;
+						}
+						else if (tokens[i].charAt(j) == '-')
+						{
+							countDash++;
+						}
+						else if (tokens[i].charAt(j) >= '0' && tokens[i].charAt(j) <= '9')
+						{
+							countNum++;
+						}
+					}
+					// if the proper number of slashes/dashes and integers
+					// are found in the token, it is a date
+					if (((countSlash == 2 && countDash == 0) || (countDash == 2 && countSlash == 0))
+							&& countNum == tokens[i].length() - 2)
+					{
+						dateFlag = true;
+						break;
+					}
+				}
+			}
+		}
+
+		return dateFlag;
+	}
+
+	/**
+	 * Checks whether the day is located before the month following the format
+	 * like '20 July'. Before
+	 * @param data The text containing the date
+	 * @param startIndex The index of where the date starts
+	 * @return true if the day is found before the month in the text, otherwise
+	 *         false
+	 */
+	private boolean checkForDayBeforeMonth(String data, int startIndex)
+	{
+		// 1 character back: space
+		if (startIndex != 0 && startIndex >= 3 && data.charAt(startIndex - 1) == ' ')
+		{
+			// 2 characters back: a number between 0 and 9
+			if (data.charAt(startIndex - 2) <= '0' && data.charAt(startIndex - 2) <= '9')
+			{
+				// 3 characters back: can either be a space or a number between
+				// 0 and 9
+				if (data.charAt(startIndex - 3) == ' '
+						|| (data.charAt(startIndex - 3) <= '0' && data.charAt(startIndex - 3) <= '9'))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A method to determine if the publication date is a hyper link.
+	 * @param textSet The current Element node to check
+	 * @return true if the date is not a hyper link based on requirements,
+	 *         return false if the date is a hyper link.
+	 */
+	protected boolean articlePublicationDateHyperLinkDetection(Element textSet)
+	{
+		return hyperLinkDetection(textSet);
+	}
 }

@@ -408,4 +408,91 @@ public class TestVisualFeatureDetection
 		}
 	}
 
+	/**
+	 * Tests that the publication date is less than or equal to 18 characters
+	 * long.
+	 */
+	@Test
+	public void testArticlePublicationDateTextLengthDetection()
+	{
+		// contains 3 tags: p tag is 34 characters, h5 tag is 10 characters and
+		// h6 tag is 16 characters
+		vfd.setFilePath("testset\\testPage8.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag is > 16 characters, so it will return false
+			if (i == 0)
+			{
+				assertFalse(vfd.articlePublicationDateTextLengthDetection(allElements.get(i)));
+			}
+			else
+			{
+				// h5 and h6 tags have <= 18 characters so it will return true
+				assertTrue(vfd.articlePublicationDateTextLengthDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the publication date can be detected in a variety of formats.
+	 */
+	@Test
+	public void testArticlePublicationDateFormatDetection()
+	{
+		// File contains different date formats. Each
+		// tag has a valid date, so all should return true.
+		vfd.setFilePath("testset\\testPage9.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articlePublicationDateFormatDetection(allElements.get(i)));
+		}
+	}
+
+	/**
+	 * Tests whether the publication date is hyper linked.
+	 */
+	@Test
+	public void testArticlePublicationDateHyperLinkDetection()
+	{
+		// the span tag and paragraph tag contain links, the other tags do not
+		vfd.setFilePath("testset\\testPage9.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// the span and p tags are the first two in the list and will return
+			// false (meaning links were detected)
+			if (i == 0 || i == 1)
+			{
+				assertFalse(vfd.articlePublicationDateHyperLinkDetection(allElements.get(i)));
+			}
+			// all other tags do not have links, so will return true (meaning a
+			// link was not detected for the element)
+			else
+			{
+				assertTrue(vfd.articlePublicationDateHyperLinkDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests all publication date rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticlePublicationDateExists()
+	{
+		// page 2 does not have elements that pass the rules, so false
+		vfd.setFilePath("testset\\testPage2.html");
+		assertFalse(vfd.articlePublicationDateExists());
+
+		// page 8 has a publication date and will pass, so true
+		vfd.setFilePath("testset\\testPage8.html");
+		assertTrue(vfd.articlePublicationDateExists());
+
+		// page 9 has many publication dates, but at least one will pass so true
+		vfd.setFilePath("testset\\testPage9.html");
+		assertTrue(vfd.articlePublicationDateExists());
+	}
+
 }
