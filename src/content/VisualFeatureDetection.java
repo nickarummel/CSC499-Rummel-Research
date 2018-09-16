@@ -424,11 +424,11 @@ public class VisualFeatureDetection
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
-			size = calculateEmAsPixels(Double.parseDouble(((trimmed.substring(0, trimmed.length() - 3)))));
+			size = calculateEmAsPixels(Double.parseDouble(((trimmed))));
 		}
 		// trim down to get the correct size as a double if measured as
 		// percentage
-		if (splitIndex > -1 && tokens[splitIndex].contains("%"))
+		else if (splitIndex > -1 && tokens[splitIndex].contains("%"))
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
@@ -941,14 +941,24 @@ public class VisualFeatureDetection
 
 	/**
 	 * A method to determine whether the title is located in the top half of the
-	 * web page. To determine if it is in the top half, it finds the location of
-	 * the given element node in the list of all element nodes. Then, the given
-	 * node's location is divided by the total number of nodes to get a
-	 * percentage.
+	 * web page.
 	 * @param testSet The given element node
 	 * @return true if the percentage < 50%, false if >= 50%
 	 */
 	protected boolean articleTitleTopHalfOfPageDetection(Element testSet)
+	{
+		return topHalfOfPageDetection(testSet);
+	}
+
+	/**
+	 * To determine if an Element in the top half of the web page, the method
+	 * finds the location of the given element node in the list of all element
+	 * nodes. Then, the given node's location is divided by the total number of
+	 * nodes to get a percentage.
+	 * @param testSet The given element node
+	 * @return true if the percentage < 50%, false if >= 50%
+	 */
+	private boolean topHalfOfPageDetection(Element testSet)
 	{
 		// select all element nodes under the body
 		Elements domTree = doc.body().children().select("*");
@@ -990,14 +1000,25 @@ public class VisualFeatureDetection
 
 	/**
 	 * A method to determine if the title is located near the top of the screen.
-	 * This is determined by converting tags to line breaks and seeing if the
-	 * location of the current text is less than the number of lines that can be
-	 * shown on a page.
 	 * @param textSet the current Element node
 	 * @return true if the title can be seen without paging down, false if page
 	 *         down is needed to see title
 	 */
 	protected boolean articleTitlePageDownDetection(Element textSet)
+	{
+		return pageDownDetection(textSet);
+	}
+
+	/**
+	 * A method to determine if an Element is located near the top of the screen
+	 * by converting tags to line breaks and seeing if the location of the
+	 * current text is less than the number of lines that can be shown on a
+	 * page.
+	 * @param textSet the current Element node
+	 * @return true if the element can be seen without paging down, false if
+	 *         page down is needed to see element
+	 */
+	private boolean pageDownDetection(Element textSet)
 	{
 		boolean pageDownFlag = false;
 
@@ -1689,7 +1710,6 @@ public class VisualFeatureDetection
 		}
 
 		return sourceExists;
-
 	}
 
 	/**
@@ -1742,5 +1762,92 @@ public class VisualFeatureDetection
 	protected boolean articleSourceTextLengthDetection(Element textSet)
 	{
 		return textLengthDetection(textSet, 4, 25);
+	}
+
+	/**
+	 * Method to determine if the source exists using 4 rules for each eligible
+	 * set of data. 1. Font size is between 6 and 12 px 2. Font color is black
+	 * 3. The text can be seen without paging down 4. Text length is greater
+	 * than 20 characters
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	protected boolean articleContentExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean contentExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleContentFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleContentFontColorDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleContentPageDownDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articleContentTextLengthDetection(allElements.get(i)))
+						{
+							// all four rules were passed, so content exists.
+							// set flag to true and break out of loop
+							contentExists = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		return contentExists;
+	}
+
+	/**
+	 * Content detection rule #1: the text's font size must be between 6px and
+	 * 12 pixels.
+	 * @param textSet The current Element that has text
+	 * @return true if the text's font size is between 6 and 12 px, otherwise
+	 *         false
+	 */
+	protected boolean articleContentFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 6.0, 12.0);
+	}
+
+	/**
+	 * Content detection rule #2: the text's font color must be black.
+	 * @param textSet The current Element that has text
+	 * @return true if text's color is black, otherwise false
+	 */
+	protected boolean articleContentFontColorDetection(Element textSet)
+	{
+		Color[] contentColors = new Color[1];
+		contentColors[0] = Color.decode("#000000");
+		return fontColorDetection(textSet, contentColors);
+	}
+
+	/**
+	 * Content detection rule #3: determine if the content is located near the
+	 * top of the screen.
+	 * @param textSet the current Element node
+	 * @return true if the content can be seen without paging down, false if
+	 *         page down is needed to see content
+	 */
+	protected boolean articleContentPageDownDetection(Element textSet)
+	{
+		return pageDownDetection(textSet);
+	}
+
+	/**
+	 * Content detection rule #4: the text's length is greater than 20
+	 * characters.
+	 * @param textSet The current Element that has text
+	 * @return true if the text length is greater than 20 characters, otherwise
+	 *         false
+	 */
+	protected boolean articleContentTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 20, 2000000000);
 	}
 }

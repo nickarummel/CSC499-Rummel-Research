@@ -961,4 +961,79 @@ public class TestVisualFeatureDetection
 		assertFalse(vfd.articleSourceExists());
 	}
 
+	/**
+	 * Tests that the content's font size is between 6 pixels and 12 pixels.
+	 */
+	@Test
+	public void testArticleContentFontSizeDetection()
+	{
+		// p tag (index 0) is less than 12 px, h1 is not
+		vfd.setFilePath("testset\\testPage16.html");
+		Elements allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleContentFontSizeDetection(allElements.get(0)));
+		assertFalse(vfd.articleContentFontSizeDetection(allElements.get(1)));
+	}
+
+	/**
+	 * Tests that the content's font color is black
+	 */
+	@Test
+	public void testArticleContentFontColorDetection()
+	{
+		// p tag (index 0) is black, h1 is a shade of blue
+		vfd.setFilePath("testset\\testPage16.html");
+		Elements allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleContentFontColorDetection(allElements.get(0)));
+		assertFalse(vfd.articleContentFontColorDetection(allElements.get(1)));
+	}
+
+	/**
+	 * Tests that the content can be seen without paging down.
+	 */
+	@Test
+	public void testArticleContentPageDownDetection()
+	{
+		// p and h1 tags can both be seen without paging down
+		vfd.setFilePath("testset\\testPage16.html");
+		Elements allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleContentPageDownDetection(allElements.get(0)));
+		assertTrue(vfd.articleContentPageDownDetection(allElements.get(1)));
+
+		// only h1 can be seen without paging down, p cannot be seen
+		vfd.setFilePath("testset\\testPage17.html");
+		allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleContentPageDownDetection(allElements.get(1)));
+		assertFalse(vfd.articleContentPageDownDetection(allElements.get(0)));
+	}
+
+	/**
+	 * Tests that the content's text length is greater than 20 characters.
+	 */
+	@Test
+	public void testArticleContentTextLengthDetection()
+	{
+		// p tag (index 0) is greater than 20 characters, h1 is less than 20
+		// characters
+		vfd.setFilePath("testset\\testPage16.html");
+		Elements allElements = vfd.getAllTextElements();
+		assertTrue(vfd.articleContentTextLengthDetection(allElements.get(0)));
+		assertFalse(vfd.articleContentTextLengthDetection(allElements.get(1)));
+	}
+
+	/**
+	 * Tests all content rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleContentExists()
+	{
+		// this page has content, so it will pass
+		vfd.setFilePath("testset\\testPage16.html");
+		assertTrue(vfd.articleContentExists());
+
+		// this page has content that requires the user to scroll so it will
+		// fail.
+		vfd.setFilePath("testset\\testPage17.html");
+		assertFalse(vfd.articleContentExists());
+	}
+
 }
