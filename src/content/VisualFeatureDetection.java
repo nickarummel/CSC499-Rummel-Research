@@ -284,7 +284,7 @@ public class VisualFeatureDetection
 	 * @return true if the element's text is within the font size range,
 	 *         otherwise false
 	 */
-	public boolean fontSizeDetection(Element textSet, double min, double max)
+	private boolean fontSizeDetection(Element textSet, double min, double max)
 	{
 		// get the style's element node form the HTML head
 		Elements headNode = doc.select("head");
@@ -1022,7 +1022,7 @@ public class VisualFeatureDetection
 	 * @param max The maximum value as an integer
 	 * @return true if
 	 */
-	public boolean textLengthDetection(Element textSet, int min, int max)
+	private boolean textLengthDetection(Element textSet, int min, int max)
 	{
 		boolean lengthFlag = false;
 		// get the node's text without tags and attributes
@@ -1142,17 +1142,14 @@ public class VisualFeatureDetection
 								// set flag to true and break out of loop
 								pubDateExists = true;
 								break;
-
 							}
 						}
-
 					}
 				}
 			}
 		}
 
 		return pubDateExists;
-
 	}
 
 	/**
@@ -1494,7 +1491,7 @@ public class VisualFeatureDetection
 				if (loc == 0)
 				{
 					// check to see if the word doesn't have text after it
-					if ((loc + freqWordList[i].length()) == text.length() - 1)
+					if ((loc + freqWordList[i].length()) == text.length())
 					{
 						wordFlag = true;
 						break;
@@ -1514,7 +1511,7 @@ public class VisualFeatureDetection
 				else if (loc > 0 && (text.charAt(loc - 1) < 'A' || text.charAt(loc - 1) > 'z'))
 				{
 					// check to see if the word doesn't have text after it
-					if ((loc + freqWordList[i].length()) == text.length() - 1)
+					if ((loc + freqWordList[i].length()) == text.length())
 					{
 						wordFlag = true;
 						break;
@@ -1532,5 +1529,93 @@ public class VisualFeatureDetection
 			}
 		}
 		return wordFlag;
+	}
+
+	/**
+	 * Method to determine if the comment link exists using 4 rules for each
+	 * eligible set of data. 1. Font size is no larger than 12 px 2. Text length
+	 * is between 6 and 15 characters 3. The text contains a frequent key word
+	 * ("comment") 4. Text is hyper linked
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articleCommentLinkExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean commentLinkExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleCommentLinkFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleCommentLinkTextLengthDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleCommentLinkFrequentWordDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articleCommentLinkHyperLinkDetection(allElements.get(i)))
+						{
+							// all four rules were passed, so comment link
+							// exists. set flag to true and break out of loop
+							commentLinkExists = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		return commentLinkExists;
+
+	}
+
+	/**
+	 * Comment link detection rule #1: the text's font size should not be larger
+	 * than 12 pixels.
+	 * @param textSet The current Element that has text
+	 * @return true if font size less than or equal to 12 px, otherwise false
+	 */
+	protected boolean articleCommentLinkFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 0.0, 12.0);
+	}
+
+	/**
+	 * Comment link detection rule #2: the text length must be between 6 and 25
+	 * characters
+	 * @param textSet The current Element that has text
+	 * @return true if the text length is between 6 and 25 characters, otherwise
+	 *         false
+	 */
+	protected boolean articleCommentLinkTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 6, 15);
+	}
+
+	/**
+	 * Comment link detection rule #3: the text must contain the frequent word
+	 * "comment"
+	 * @param textSet The current Element that has text
+	 * @return true if "comment" was found in the text, otherwise false
+	 */
+	protected boolean articleCommentLinkFrequentWordDetection(Element textSet)
+	{
+		String[] wordList =
+		{ "comment" };
+		return frequentWordDetection(textSet, wordList);
+	}
+
+	/**
+	 * Comment link detection rule #4: the text should contain a hyper link.
+	 * @param textSet The current Element node
+	 * @return true if a hyper link is detected for the node, otherwise false
+	 */
+	protected boolean articleCommentLinkHyperLinkDetection(Element textSet)
+	{
+		// the original method returns true if a hyper link is not detected
+		// so the inverse is true in this case
+		return !hyperLinkDetection(textSet);
 	}
 }

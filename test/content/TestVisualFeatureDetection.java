@@ -598,21 +598,200 @@ public class TestVisualFeatureDetection
 			}
 		}
 	}
-	
+
 	/**
 	 * Tests all author rules together in nested conditionals.
 	 */
 	@Test
 	public void testArticleAuthorExists()
 	{
+		// contains author
 		vfd.setFilePath("testset\\testPage10.html");
 		assertTrue(vfd.articleAuthorExists());
-		
+
+		// contains author
 		vfd.setFilePath("testset\\testPage11.html");
 		assertTrue(vfd.articleAuthorExists());
-		
+
+		// does not contain author
 		vfd.setFilePath("testset\\testPage6.html");
 		assertFalse(vfd.articleAuthorExists());
+	}
+
+	/**
+	 * Tests that it can detect that the font size is less than 12 px for the
+	 * comment link.
+	 */
+	@Test
+	public void testArticleCommentLinkFontSizeDetection()
+	{
+		// only the paragraph tag font size is <= 12 px
+		vfd.setFilePath("testset\\testPage12.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// second paragraph tag will pass
+			if (i == 1 || i == 4)
+			{
+				assertTrue(vfd.articleCommentLinkFontSizeDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkFontSizeDetection(allElements.get(i)));
+			}
+		}
+
+		// all tags are <= 12 px font size so all will pass
+		vfd.setFilePath("testset\\testPage13.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleCommentLinkFontSizeDetection(allElements.get(i)));
+		}
+	}
+
+	/**
+	 * Tests that a text length between 6 and 15 characters can be detected for
+	 * the comment link.
+	 */
+	@Test
+	public void testArticleCommentLinkTextLengthDetection()
+	{
+		// only two of 5 elements are between 6 and 15 characters
+		vfd.setFilePath("testset\\testPage12.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 1 (p) and 4 (h6) will pass
+			if (i == 1 || i == allElements.size() - 1)
+			{
+				assertTrue(vfd.articleCommentLinkTextLengthDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkTextLengthDetection(allElements.get(i)));
+			}
+		}
+
+		// only two of 5 elements are between 6 and 15 characters
+		vfd.setFilePath("testset\\testPage13.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 1 (h3) and 2 (h5) will pass
+			if (i == 1 || i == 2)
+			{
+				assertTrue(vfd.articleCommentLinkTextLengthDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkTextLengthDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the frequent word "comment" is detected in the comment link.
+	 */
+	@Test
+	public void testArticleCommentLinkFrequentWordDetection()
+	{
+		// only the paragraph tag contains "comment"
+		vfd.setFilePath("testset\\testPage12.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// second paragraph tag will pass
+			if (i == 1)
+			{
+				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+		}
+
+		// only the h3 tag contains "comment"
+		vfd.setFilePath("testset\\testPage13.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h3 tag will pass
+			if (i == 1)
+			{
+				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the comment link text from the Element is hyper linked.
+	 */
+	@Test
+	public void testArticleCommentLinkHyperLinkDetection()
+	{
+		// only the paragraph tag contains the hyper link
+		vfd.setFilePath("testset\\testPage12.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// second paragraph tag will pass
+			if (i == 1)
+			{
+				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+		}
+
+		// only the h3 tag contains the hyper link
+		vfd.setFilePath("testset\\testPage13.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h3 tag will pass
+			if (i == 1)
+			{
+				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests all comment link rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleCommentLinkDetection()
+	{
+		// contains comment link
+		vfd.setFilePath("testset\\testPage12.html");
+		assertTrue(vfd.articleCommentLinkExists());
+
+		// contains comment link
+		vfd.setFilePath("testset\\testPage13.html");
+		assertTrue(vfd.articleCommentLinkExists());
+
+		// does not contain comment link
+		vfd.setFilePath("testset\\testPage11.html");
+		assertFalse(vfd.articleCommentLinkExists());
 	}
 
 }
