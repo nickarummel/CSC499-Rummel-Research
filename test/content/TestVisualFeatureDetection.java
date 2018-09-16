@@ -495,4 +495,124 @@ public class TestVisualFeatureDetection
 		assertTrue(vfd.articlePublicationDateExists());
 	}
 
+	/**
+	 * Tests that an Element's text font size for an author must be less than or
+	 * equal to 12px.
+	 */
+	@Test
+	public void testArticleAuthorFontSizeDetection()
+	{
+		// only the h6 tag is <= 12 pixels, other tags will fail
+		vfd.setFilePath("testset\\testPage10.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			if (i == allElements.size() - 1)
+			{
+				assertTrue(vfd.articleAuthorFontSizeDetection(allElements.get(i)));
+			}
+			else
+			{
+				assertFalse(vfd.articleAuthorFontSizeDetection(allElements.get(i)));
+			}
+		}
+
+		// all tags have a font size <= 12 pixels, so all will pass
+		vfd.setFilePath("testset\\testPage11.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleAuthorFontSizeDetection(allElements.get(i)));
+		}
+	}
+
+	/**
+	 * Tests that Elements with text between 3 and 25 characters long may be the
+	 * article's author.
+	 */
+	@Test
+	public void testArticleAuthorTextLengthDetection()
+	{
+		// all tags have less than 25 characters
+		vfd.setFilePath("testset\\testPage10.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleAuthorTextLengthDetection(allElements.get(i)));
+		}
+
+		vfd.setFilePath("testset\\testPage11.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// the p tag has more than 25 characters
+			if (i == 0)
+			{
+				assertFalse(vfd.articleAuthorTextLengthDetection(allElements.get(i)));
+			}
+			// all other tags have less than 25 characters
+			else
+			{
+				assertTrue(vfd.articleAuthorTextLengthDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests if a potential author node has the frequent word "author" or "by".
+	 */
+	@Test
+	public void testArticleAuthorFrequentWordDetection()
+	{
+		// only the h6 tag contains a frequent word
+		vfd.setFilePath("testset\\testPage10.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h6 tag is last index, contains word "by"
+			if (i == allElements.size() - 1)
+			{
+				assertTrue(vfd.articleAuthorFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags do not contain a frequent word
+			else
+			{
+				assertFalse(vfd.articleAuthorFrequentWordDetection(allElements.get(i)));
+			}
+		}
+
+		// only the last h6 tag contains a frequent word
+		vfd.setFilePath("testset\\testPage11.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// the last h6 tag is the last index, contains word "author"
+			if (i == allElements.size() - 1)
+			{
+				assertTrue(vfd.articleAuthorFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags do not contain a frequent word
+			else
+			{
+				assertFalse(vfd.articleAuthorFrequentWordDetection(allElements.get(i)));
+			}
+		}
+	}
+	
+	/**
+	 * Tests all author rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleAuthorExists()
+	{
+		vfd.setFilePath("testset\\testPage10.html");
+		assertTrue(vfd.articleAuthorExists());
+		
+		vfd.setFilePath("testset\\testPage11.html");
+		assertTrue(vfd.articleAuthorExists());
+		
+		vfd.setFilePath("testset\\testPage6.html");
+		assertFalse(vfd.articleAuthorExists());
+	}
+
 }

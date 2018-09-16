@@ -269,10 +269,7 @@ public class VisualFeatureDetection
 	 */
 	protected boolean articleTitleFontSizeDetection(Element textSet)
 	{
-		double min = 15.0;
-		double max = 45.0;
-		return fontSizeDetection(textSet, min, max);
-
+		return fontSizeDetection(textSet, 15.0, 45.0);
 	}
 
 	/**
@@ -1113,10 +1110,10 @@ public class VisualFeatureDetection
 	}
 
 	/**
-	 * Method to determine if the title exists using 6 rules for each eligible
-	 * set of data. 1. Font size is no larger than 10 px 2. Font color is black,
-	 * blue, or gray 3. Text length is no longer than 18 characters 4. The text
-	 * is formatted as a date 5. The text is not hyperlinked
+	 * Method to determine if the publication date exists using 5 rules for each
+	 * eligible set of data. 1. Font size is no larger than 10 px 2. Font color
+	 * is black, blue, or gray 3. Text length is no longer than 18 characters 4.
+	 * The text is formatted as a date 5. The text is not hyperlinked
 	 * @return true if all rules match for an element, false if no elements from
 	 *         the set match all rules
 	 */
@@ -1387,7 +1384,8 @@ public class VisualFeatureDetection
 	}
 
 	/**
-	 * A method to determine if the publication date is a hyper link.
+	 * Date Detection Rule #6: Determine if the publication date is a hyper
+	 * link.
 	 * @param textSet The current Element node to check
 	 * @return true if the date is not a hyper link based on requirements,
 	 *         return false if the date is a hyper link.
@@ -1395,5 +1393,144 @@ public class VisualFeatureDetection
 	protected boolean articlePublicationDateHyperLinkDetection(Element textSet)
 	{
 		return hyperLinkDetection(textSet);
+	}
+
+	/**
+	 * Method to determine if the author exists using 3 rules for each eligible
+	 * set of data. 1. Font size is no larger than 12 px 2. Text length is
+	 * between 3 and 25 characters 3. The text contains a frequent key word
+	 * ("by", "author")
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articleAuthorExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean authorExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleAuthorFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleAuthorTextLengthDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleAuthorFrequentWordDetection(allElements.get(i)))
+					{
+						// all three rules were passed, so author exists.
+						// set flag to true and break out of loop
+						authorExists = true;
+						break;
+					}
+				}
+			}
+		}
+		return authorExists;
+	}
+
+	/**
+	 * Author Detection Rule #1: Determine if the node's text is less than or
+	 * equal to 12 pixels.
+	 * @param textSet The current Element node
+	 * @return true if the Element's font size is less than or equal to 12
+	 *         pixels, otherwise false
+	 */
+	protected boolean articleAuthorFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 0.0, 13.0);
+	}
+
+	/**
+	 * Author detection rule #2: see if the Element's text has a length between
+	 * 3 and 25 characters.
+	 * @param textSet The current Element containing a paragraph or heading tag
+	 * @return true if the text length is between 3 and 25 characters, else
+	 *         false
+	 */
+	protected boolean articleAuthorTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 3, 25);
+	}
+
+	/**
+	 * Author detection rule #3: see if the Element's text contains one of the
+	 * frequent words "by" or "author".
+	 * @param textSet The current Element containing text
+	 * @return true if the Element's text has one of the words, otherwise false
+	 */
+	protected boolean articleAuthorFrequentWordDetection(Element textSet)
+	{
+		String[] freqWords =
+		{ "by", "author" };
+		return frequentWordDetection(textSet, freqWords);
+	}
+
+	/**
+	 * Determines if an Element node's text contains one of the frequent words.
+	 * The code also verifies that the word stands by itself, meaning that
+	 * cannot be part of another word (it must be separate from other letter
+	 * characters).
+	 * @param textSet The current Element node to check
+	 * @param freqWordList The list of frequent words to check the node for
+	 * @return true if the node contains one of the frequent words, otherwise
+	 *         false
+	 */
+	private boolean frequentWordDetection(Element textSet, String[] freqWordList)
+	{
+		boolean wordFlag = false;
+		// get text from element, make it lower case, and trim off extra white
+		// space
+		String text = textSet.text().toLowerCase().trim();
+		for (int i = 0; i < freqWordList.length; i++)
+		{
+			// check if the text contains the current frequent word
+			if (text.contains(freqWordList[i]))
+			{
+				// if so, check to make sure the word is "alone"
+				int loc = text.indexOf(freqWordList[i]);
+				// no characters before the start of the string, so check the
+				// next two conditions
+				if (loc == 0)
+				{
+					// check to see if the word doesn't have text after it
+					if ((loc + freqWordList[i].length()) == text.length() - 1)
+					{
+						wordFlag = true;
+						break;
+					}
+					// check to see if word is followed by a non-letter
+					// character (ex. space, colon, etc.)
+					else if ((loc + freqWordList[i].length()) < text.length()
+							&& (text.charAt(loc + freqWordList[i].length()) < 'A'
+									|| text.charAt(loc + freqWordList[i].length()) > 'z'))
+					{
+						wordFlag = true;
+						break;
+					}
+				}
+				// check to see if the character before the word is not a letter
+				// (ex. space), check next two conditions
+				else if (loc > 0 && (text.charAt(loc - 1) < 'A' || text.charAt(loc - 1) > 'z'))
+				{
+					// check to see if the word doesn't have text after it
+					if ((loc + freqWordList[i].length()) == text.length() - 1)
+					{
+						wordFlag = true;
+						break;
+					}
+					// check to see if word is followed by a non-letter
+					// character (ex. space, colon, etc.)
+					else if ((loc + freqWordList[i].length()) < text.length()
+							&& (text.charAt(loc + freqWordList[i].length()) < 'A'
+									|| text.charAt(loc + freqWordList[i].length()) > 'z'))
+					{
+						wordFlag = true;
+						break;
+					}
+				}
+			}
+		}
+		return wordFlag;
 	}
 }
