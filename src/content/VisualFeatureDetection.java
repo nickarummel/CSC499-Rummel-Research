@@ -305,7 +305,7 @@ public class VisualFeatureDetection
 		// font size attribute and the current text's tag (paragraph or heading)
 		// has values in the head's style.
 		else if ((styleNode != null) && styleNode.data().contains("font-size")
-				&& styleDataContainsElement(curElement, styleNode.data()))
+				&& styleDataContainsAttributeForElement(curElement, styleNode.data(), "font-size"))
 		{
 			// tokenize to get the font size
 			String[] fontSizeStyle = doc.select("style").first().data().split("font-size");
@@ -473,6 +473,39 @@ public class VisualFeatureDetection
 	}
 
 	/**
+	 * Checks for CSS styling inside of the head's style tag. The formatting is
+	 * usually tag {attribute: value;} or tag{attribute: value;}. Then, it
+	 * verifies that the tag has the correct attribute located on the same line.
+	 * @param current The current Element node
+	 * @param data The style data as a String
+	 * @param attribute The style attribute to find in the style data
+	 * @return true if
+	 */
+	private boolean styleDataContainsAttributeForElement(Element current, String data, String attribute)
+	{
+		boolean result = false;
+		// get the tag name (p, h1-h6, etc.)
+		String curTag = current.tagName();
+		// check if it is in the format tag { or tag{
+		if (data.contains(curTag + " {") || data.contains(curTag + "{"))
+		{
+			// parse data using the ending curly brace '}'
+			String[] tokens = data.split("}");
+			for (int i = 0; i < tokens.length; i++)
+			{
+				// checks if the current token has the tag and attribute
+				if (tokens[i].contains(curTag) && tokens[i].contains(attribute))
+				{
+					result = true;
+					break;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Title detection rule #2: check to see if the Element's text is a black or
 	 * blue font color. It can be checked using HTML color codes, RGB/RGBA, and
 	 * HSL/HSLA. The color can also be found from in-line or style tags.
@@ -482,10 +515,10 @@ public class VisualFeatureDetection
 	 */
 	protected boolean articleTitleFontColorDetection(Element textSet)
 	{
-		Color[] articleColors = new Color[2];
-		articleColors[0] = Color.decode("#000000");
-		articleColors[1] = Color.decode("#0000FF");
-		return fontColorDetection(textSet, articleColors);
+		Color[] titleColors = new Color[2];
+		titleColors[0] = Color.decode("#000000");
+		titleColors[1] = Color.decode("#0000FF");
+		return fontColorDetection(textSet, titleColors);
 	}
 
 	/**
@@ -519,7 +552,7 @@ public class VisualFeatureDetection
 		// color attribute and the current text's tag (paragraph or heading)
 		// has values in the head's style.
 		else if ((styleNode != null) && styleNode.data().contains("color")
-				&& styleDataContainsElement(curElement, styleNode.data()))
+				&& styleDataContainsAttributeForElement(curElement, styleNode.data(), "color"))
 		{
 			// tokenize to get the font size
 			String[] split = doc.select("style").first().data().split("color");
@@ -1173,11 +1206,11 @@ public class VisualFeatureDetection
 	 */
 	protected boolean articlePublicationDateFontColorDetection(Element textSet)
 	{
-		Color[] articleColors = new Color[3];
-		articleColors[0] = Color.decode("#000000");
-		articleColors[1] = Color.decode("#0000FF");
-		articleColors[2] = Color.decode("#808080");
-		return fontColorDetection(textSet, articleColors);
+		Color[] dateColors = new Color[3];
+		dateColors[0] = Color.decode("#000000");
+		dateColors[1] = Color.decode("#0000FF");
+		dateColors[2] = Color.decode("#808080");
+		return fontColorDetection(textSet, dateColors);
 	}
 
 	/**
@@ -1617,5 +1650,97 @@ public class VisualFeatureDetection
 		// the original method returns true if a hyper link is not detected
 		// so the inverse is true in this case
 		return !hyperLinkDetection(textSet);
+	}
+
+	/**
+	 * Method to determine if the source exists using 4 rules for each eligible
+	 * set of data. 1. Font size is no larger than 12 px 2. Font color is black,
+	 * gray, or brown 3. The text contains a frequent key word ("from",
+	 * "source") 4. Text length is between 4 and 25 characters
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articleSourceExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean sourceExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleSourceFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleSourceFontColorDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleSourceFrequentWordDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articleSourceTextLengthDetection(allElements.get(i)))
+						{
+							// all four rules were passed, so source exists.
+							// set flag to true and break out of loop
+							sourceExists = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		return sourceExists;
+
+	}
+
+	/**
+	 * Source detection rule #1: the text's font size must be less than or equal
+	 * to 12 pixels.
+	 * @param textSet The current Element that has text
+	 * @return true if the text's font size is no larger than 12 pixels,
+	 *         otherwise false
+	 */
+	protected boolean articleSourceFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 0.0, 12.0);
+	}
+
+	/**
+	 * Source detection rule #2: the text's font color must be black, gray, or
+	 * brown.
+	 * @param textSet The current Element that has text
+	 * @return true if text's color is black, gray, or brown, otherwise false
+	 */
+	protected boolean articleSourceFontColorDetection(Element textSet)
+	{
+		Color[] sourceColors = new Color[3];
+		sourceColors[0] = Color.decode("#000000");
+		sourceColors[1] = Color.decode("#808080");
+		sourceColors[2] = Color.decode("#A52A2A");
+		return fontColorDetection(textSet, sourceColors);
+	}
+
+	/**
+	 * Source detection rule #3: the text contains a frequent word "from" or
+	 * "source"
+	 * @param textSet The current Element that has text
+	 * @return true if the text contains "from" or "source", otherwise false
+	 */
+	protected boolean articleSourceFrequentWordDetection(Element textSet)
+	{
+		String[] wordList =
+		{ "from", "source" };
+		return frequentWordDetection(textSet, wordList);
+	}
+
+	/**
+	 * Source detection rule #4: the text's length is between 4 and 25
+	 * characters.
+	 * @param textSet The current Element that has text
+	 * @return true if the text length is in the range of 4 and 25 characters,
+	 *         otherwise false
+	 */
+	protected boolean articleSourceTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 4, 25);
 	}
 }

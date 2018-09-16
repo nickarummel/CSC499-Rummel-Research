@@ -625,12 +625,12 @@ public class TestVisualFeatureDetection
 	@Test
 	public void testArticleCommentLinkFontSizeDetection()
 	{
-		// only the paragraph tag font size is <= 12 px
+		// the paragraph tag and h6 tag font size is <= 12 px
 		vfd.setFilePath("testset\\testPage12.html");
 		Elements allElements = vfd.getAllTextElements();
 		for (int i = 0; i < allElements.size(); i++)
 		{
-			// second paragraph tag will pass
+			// second paragraph tag and h6 tag will pass
 			if (i == 1 || i == 4)
 			{
 				assertTrue(vfd.articleCommentLinkFontSizeDetection(allElements.get(i)));
@@ -748,12 +748,12 @@ public class TestVisualFeatureDetection
 			// second paragraph tag will pass
 			if (i == 1)
 			{
-				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+				assertTrue(vfd.articleCommentLinkHyperLinkDetection(allElements.get(i)));
 			}
 			// all other tags will fail
 			else
 			{
-				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+				assertFalse(vfd.articleCommentLinkHyperLinkDetection(allElements.get(i)));
 			}
 		}
 
@@ -765,12 +765,12 @@ public class TestVisualFeatureDetection
 			// h3 tag will pass
 			if (i == 1)
 			{
-				assertTrue(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+				assertTrue(vfd.articleCommentLinkHyperLinkDetection(allElements.get(i)));
 			}
 			// all other tags will fail
 			else
 			{
-				assertFalse(vfd.articleCommentLinkFrequentWordDetection(allElements.get(i)));
+				assertFalse(vfd.articleCommentLinkHyperLinkDetection(allElements.get(i)));
 			}
 		}
 	}
@@ -779,7 +779,7 @@ public class TestVisualFeatureDetection
 	 * Tests all comment link rules together in nested conditionals.
 	 */
 	@Test
-	public void testArticleCommentLinkDetection()
+	public void testArticleCommentLinkExists()
 	{
 		// contains comment link
 		vfd.setFilePath("testset\\testPage12.html");
@@ -792,6 +792,173 @@ public class TestVisualFeatureDetection
 		// does not contain comment link
 		vfd.setFilePath("testset\\testPage11.html");
 		assertFalse(vfd.articleCommentLinkExists());
+	}
+
+	/**
+	 * Tests that the source's font size is no larger than 12 pixels.
+	 */
+	@Test
+	public void testArticleSourceFontSizeDetection()
+	{
+		// the first paragraph and h6 tags font size is <= 12 px
+		vfd.setFilePath("testset\\testPage14.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// first paragraph tag and h6 tag will pass
+			if (i == 0 || i == 4)
+			{
+				assertTrue(vfd.articleSourceFontSizeDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleSourceFontSizeDetection(allElements.get(i)));
+			}
+		}
+
+		// all tags are <= 12 px font size so all will pass
+		vfd.setFilePath("testset\\testPage15.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			assertTrue(vfd.articleSourceFontSizeDetection(allElements.get(i)));
+		}
+	}
+
+	/**
+	 * Tests that the source's font color is black, brown, or gray.
+	 */
+	@Test
+	public void testArticleSourceFontColorDetection()
+	{
+		// the first paragraph, h2, and h6 tags font color is black or brown
+		vfd.setFilePath("testset\\testPage14.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// first p tag, h2, and h6 are black or brown, so pass
+			if (i == 0 || i == 3 || i == 4)
+			{
+				assertTrue(vfd.articleSourceFontColorDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleSourceFontColorDetection(allElements.get(i)));
+			}
+		}
+
+		// all tags but the p tag are black or gray
+		vfd.setFilePath("testset\\testPage15.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// only the first p tag is red, so it will fail
+			if (i == 0)
+			{
+				assertFalse(vfd.articleSourceFontColorDetection(allElements.get(i)));
+			}
+			// all other tags are gray or black, so they will all pass
+			else
+			{
+				assertTrue(vfd.articleSourceFontColorDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the source's text contains a frequent word "source" or "from".
+	 */
+	@Test
+	public void testArticleSourceFrequentWordDetection()
+	{
+		// only the first p tag contains a frequent word
+		vfd.setFilePath("testset\\testPage14.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// first p has "source" so pass
+			if (i == 0)
+			{
+				assertTrue(vfd.articleSourceFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags don't have a frequent word so fail
+			else
+			{
+				assertFalse(vfd.articleSourceFrequentWordDetection(allElements.get(i)));
+			}
+		}
+
+		// only the last h6 tag contains a frequent word
+		vfd.setFilePath("testset\\testPage15.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// last h6 contains "from" so it will pass
+			if (i == 4)
+			{
+				assertTrue(vfd.articleSourceFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags don't contain a frequent word so false
+			else
+			{
+				assertFalse(vfd.articleSourceFrequentWordDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the source's text length is between 4 and 25 characters.
+	 */
+	@Test
+	public void testArticleSourceTextLengthDetection()
+	{
+		// all tags are less than 25 characters
+		vfd.setFilePath("testset\\testPage14.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// all tags are less than 25 characters, so all will pass
+			assertTrue(vfd.articleSourceTextLengthDetection(allElements.get(i)));
+
+		}
+
+		// all tags except the p tag are less than 25 characters
+		vfd.setFilePath("testset\\testPage15.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag is greater than 25 characters, so it will fail
+			if (i == 0)
+			{
+				assertFalse(vfd.articleSourceTextLengthDetection(allElements.get(i)));
+			}
+			// all other tags are less than 25 characters so true
+			else
+			{
+				assertTrue(vfd.articleSourceTextLengthDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests all source rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleSourceExists()
+	{
+		// contains source
+		vfd.setFilePath("testset\\testPage14.html");
+		assertTrue(vfd.articleSourceExists());
+
+		// contains source
+		vfd.setFilePath("testset\\testPage15.html");
+		assertTrue(vfd.articleSourceExists());
+
+		// does not contain source
+		vfd.setFilePath("testset\\testPage13.html");
+		assertFalse(vfd.articleSourceExists());
 	}
 
 }
