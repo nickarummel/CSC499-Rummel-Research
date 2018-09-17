@@ -1027,7 +1027,7 @@ public class VisualFeatureDetection
 		{ "br", "p", "h1", "h2", "h3", "h4", "h5", "h6", "div", "td", "li" };
 		// clone the DOM tree
 		Document clone = doc.clone();
-		
+
 		// convert each tag to new line ('\n')
 		for (int i = 0; i < htmlTagsToConvert.length; i++)
 		{
@@ -1970,5 +1970,110 @@ public class VisualFeatureDetection
 			}
 		}
 		return wordFlag;
+	}
+
+	/**
+	 * Method to determine if the related new links exists using 5 rules for
+	 * each eligible set of data. 1. Font size is no larger than 12 px 2. Font
+	 * color is black or blue 3.Element is in bottom half of the page 4. Text
+	 * contains a hyper link 5. Text contains frequent words "related news" or
+	 * "related links"
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articleRelatedNewsLinksExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean relNewsLinksExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleRelatedNewsLinksFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleRelatedNewsLinksFontColorDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)))
+						{
+							// rule 5
+							if (articleRelatedNewsLinksFrequentWordDetection(allElements.get(i)))
+							{
+								// all five rules were passed, so related news
+								// links exists. set flag to true and break out
+								// of loop
+								relNewsLinksExists = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return relNewsLinksExists;
+	}
+
+	/**
+	 * Related news links detection rule #1: the font size of the text must be
+	 * less than or equal to 12 pixels.
+	 * @param textSet The current Element that has text
+	 * @return true if font size is no larger than 12 pixels, otherwise false
+	 */
+	protected boolean articleRelatedNewsLinksFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 0.0, 12.0);
+	}
+
+	/**
+	 * Related news links detection rule #2: the font color of the text must be
+	 * black or blue.
+	 * @param textSet The current Element that has text
+	 * @return true if font color is black or blue, otherwise false
+	 */
+	protected boolean articleRelatedNewsLinksFontColorDetection(Element textSet)
+	{
+		Color relatedNewsColors[] = new Color[2];
+		relatedNewsColors[0] = Color.decode("#000000");
+		relatedNewsColors[1] = Color.decode("#0000FF");
+		return fontColorDetection(textSet, relatedNewsColors);
+	}
+
+	/**
+	 * Related news links detection rule #3: the Element must exist in the
+	 * bottom half of the web page
+	 * @param textSet The current Element that has text
+	 * @return true if the element is in the bottom half of the page, otherwise
+	 *         false
+	 */
+	protected boolean articleRelatedNewsLinksBottomHalfOfPageDetection(Element textSet)
+	{
+		return !topHalfOfPageDetection(textSet);
+	}
+
+	/**
+	 * Related news links detection rule #4: the text must be hyper linked
+	 * @param textSet The current Element that has text
+	 * @return true if the text is hyper linked, otherwise false
+	 */
+	protected boolean articleRelatedNewsLinksHyperLinkDetection(Element textSet)
+	{
+		return !hyperLinkDetection(textSet);
+	}
+
+	/**
+	 * Related news links detection rule #5: the text must contain the frequent
+	 * words "related news" or "related links".
+	 * @param textSet The current Element that has text
+	 * @return true if either set of words is found in the text, otherwise false
+	 */
+	protected boolean articleRelatedNewsLinksFrequentWordDetection(Element textSet)
+	{
+		String[] wordList =
+		{ "related news", "related links" };
+		return frequentWordDetection(textSet, wordList);
 	}
 }

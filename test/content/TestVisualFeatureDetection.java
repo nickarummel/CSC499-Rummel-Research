@@ -1221,4 +1221,230 @@ public class TestVisualFeatureDetection
 		assertFalse(vfd.articleCategoryExists());
 	}
 
+	/**
+	 * Tests that the related news links have a maximum font size of 12 pixels.
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksFontSizeDetection()
+	{
+		// only the h5 and h6 tags have a font size not larger than 12 pixels
+		vfd.setFilePath("testset\\testPage20.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h5 and h6 tags will pass
+			if (i >= 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksFontSizeDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksFontSizeDetection(allElements.get(i)));
+			}
+		}
+
+		// only h6 tag has a font size not larger than 12 pixels
+		vfd.setFilePath("testset\\testPage21.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h6 tag will pass
+			if (i == 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksFontSizeDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksFontSizeDetection(allElements.get(i)));
+			}
+		}
+
+	}
+
+	/**
+	 * Tests that the related news links' font color is black or blue
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksFontColorDetection()
+	{
+		// all tags are black or blue
+		vfd.setFilePath("testset\\testPage20.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// all tags pass
+			assertTrue(vfd.articleRelatedNewsLinksFontColorDetection(allElements.get(i)));
+		}
+
+		// all tags are black or blue except the paragraph tag
+		vfd.setFilePath("testset\\testPage21.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag is red and will fail
+			if (i == 0)
+			{
+				assertFalse(vfd.articleRelatedNewsLinksFontColorDetection(allElements.get(i)));
+			}
+			// all other tags will pass
+			else
+			{
+				assertTrue(vfd.articleRelatedNewsLinksFontColorDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the related new links are located in the bottom half of the
+	 * page
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksBottomHalfOfPageDetection()
+	{
+		// half of the tags will be in the top, the other half in the bottom
+		vfd.setFilePath("testset\\testPage20.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// indices 0, 1, 2, and 4 are in the top half
+			if (i == 0 || i == 1 || i == 2 || i == 4)
+			{
+				assertFalse(vfd.articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i)));
+			}
+			// indices 3 and 5 are in the bottom half
+			else
+			{
+				assertTrue(vfd.articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i)));
+
+			}
+		}
+
+		// half of the tags will also be in the top, and the other half in the
+		// bottom
+		vfd.setFilePath("testset\\testPage21.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// indices 0 and 2 are in the top half
+			if (i == 0 || i == 2)
+			{
+				assertFalse(vfd.articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i)));
+			}
+			// indices 1, 3, 4 and 5 are in the bottom half
+			else
+			{
+				assertTrue(vfd.articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i)));
+
+			}
+		}
+	}
+
+	/**
+	 * Tests that the related news links text are hyper linked
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksHyperLinkDetection()
+	{
+		// only the last h5 tag is hyper linked
+		vfd.setFilePath("testset\\testPage20.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 3 is hyper linked, so it will pass
+			if (i == 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+
+			}
+		}
+
+		// only the last h6 tag is hyper linked
+		vfd.setFilePath("testset\\testPage21.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 3 is hyper linked, so it will pass
+			if (i == 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+
+			}
+		}
+	}
+
+	/**
+	 * Tests that the related news links text contains the frequent words
+	 * "related news" or "related links"
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksFrequentWordDetection()
+	{
+		// only the last h5 tag contains "related news"
+		vfd.setFilePath("testset\\testPage20.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 3 will pass
+			if (i == 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+
+			}
+		}
+
+		// only the last h6 tag contains "related link"
+		vfd.setFilePath("testset\\testPage21.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// index 3 will pass
+			if (i == 3)
+			{
+				assertTrue(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleRelatedNewsLinksHyperLinkDetection(allElements.get(i)));
+
+			}
+		}
+	}
+
+	/**
+	 * Tests all related news link rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleRelatedNewsLinksExists()
+	{
+		// contains related news links
+		vfd.setFilePath("testset\\testPage20.html");
+		assertTrue(vfd.articleRelatedNewsLinksExists());
+
+		// contains related news links
+		vfd.setFilePath("testset\\testPage21.html");
+		assertTrue(vfd.articleRelatedNewsLinksExists());
+
+		// does not contain related news links
+		vfd.setFilePath("testset\\testPage14.html");
+		assertFalse(vfd.articleRelatedNewsLinksExists());
+	}
+
 }
