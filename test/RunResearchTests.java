@@ -2,6 +2,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 import content.TestVisualFeatureDetection;
+import link.TestLinkAnalysis;
 
 /**
  * Run all JUnit tests as a suite for project
@@ -10,11 +11,11 @@ import content.TestVisualFeatureDetection;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
-{
-	TestVisualFeatureDetection.class
+{ 
+	TestVisualFeatureDetection.class,
+	TestLinkAnalysis.class
 
-}
-)
+})
 
 public class RunResearchTests
 {
