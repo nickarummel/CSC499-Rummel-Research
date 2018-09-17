@@ -529,7 +529,7 @@ public class VisualFeatureDetection
 	 * @return true if the color from the HTML matches one of the colors listed,
 	 *         else false
 	 */
-	public boolean fontColorDetection(Element textSet, Color[] colors)
+	private boolean fontColorDetection(Element textSet, Color[] colors)
 	{
 		boolean detectFlag = false;
 
@@ -1027,6 +1027,7 @@ public class VisualFeatureDetection
 		{ "br", "p", "h1", "h2", "h3", "h4", "h5", "h6", "div", "td", "li" };
 		// clone the DOM tree
 		Document clone = doc.clone();
+		
 		// convert each tag to new line ('\n')
 		for (int i = 0; i < htmlTagsToConvert.length; i++)
 		{
@@ -1035,6 +1036,8 @@ public class VisualFeatureDetection
 		String html = clone.body().html().replaceAll("\\\\n", "\n");
 		// run Jsoup's clean method to strip out all tags but keep new lines
 		String allText = Jsoup.clean(html, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+		// convert entity tag &gt; to > (greater than symbol)
+		allText = allText.replaceAll("&gt;", ">");
 		// split text into tokens based on new line
 		String[] tokens = allText.split("\n");
 		// find which token has the current node's text and save that index
@@ -1849,5 +1852,123 @@ public class VisualFeatureDetection
 	protected boolean articleContentTextLengthDetection(Element textSet)
 	{
 		return textLengthDetection(textSet, 20, 2000000000);
+	}
+
+	/**
+	 * Method to determine if the category exists using 5 rules for each
+	 * eligible set of data. 1. Font size is no larger than 12 px 2. Element
+	 * located in top half of page 3.Element can be seen without paging down 4.
+	 * Text length is between 8 and 30 characters 5. Text contains frequent
+	 * words ">", "->", "|"
+	 * @return true if all rules match for an element, false if no elements from
+	 *         the set match all rules
+	 */
+	public boolean articleCategoryExists()
+	{
+		Elements allElements = getAllTextElements();
+		boolean categoryExists = false;
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// rule 1
+			if (articleCategoryFontSizeDetection(allElements.get(i)))
+			{
+				// rule 2
+				if (articleCategoryTopHalfOfPageDetection(allElements.get(i)))
+				{
+					// rule 3
+					if (articleCategoryPageDownDetection(allElements.get(i)))
+					{
+						// rule 4
+						if (articleCategoryTextLengthDetection(allElements.get(i)))
+						{
+							// rule 5
+							if (articleCategoryFrequentWordDetection(allElements.get(i)))
+							{
+								// all five rules were passed, so category
+								// exists. set flag to true and break out of
+								// loop
+								categoryExists = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return categoryExists;
+	}
+
+	/**
+	 * Category detection rule #1: text must have a font size less than or equal
+	 * to 12 pixels.
+	 * @param textSet The current Element that has text
+	 * @return true if the font size is no larger than 12 px, otherwise false
+	 */
+	protected boolean articleCategoryFontSizeDetection(Element textSet)
+	{
+		return fontSizeDetection(textSet, 0.0, 12.0);
+	}
+
+	/**
+	 * Category detection rule #2: text must be in the top half of the page.
+	 * @param textSet The current Element that has text
+	 * @return if the Element exists in the top half of the page, otherwise
+	 *         false
+	 */
+	protected boolean articleCategoryTopHalfOfPageDetection(Element textSet)
+	{
+		return topHalfOfPageDetection(textSet);
+	}
+
+	/**
+	 * Category detection rule #3: text must be visible without paging down.
+	 * @param textSet The current Element that has text
+	 * @return true if the Element can be viewed without paging down, otherwise
+	 *         false
+	 */
+	protected boolean articleCategoryPageDownDetection(Element textSet)
+	{
+		return pageDownDetection(textSet);
+	}
+
+	/**
+	 * Category detection rule #4: text length must be between 8 and 30
+	 * characters
+	 * @param textSet The current Element that has text
+	 * @return true if the text length is between 8 and 30 characters, otherwise
+	 *         false
+	 */
+	protected boolean articleCategoryTextLengthDetection(Element textSet)
+	{
+		return textLengthDetection(textSet, 8, 30);
+	}
+
+	/**
+	 * Category detection rule #5: text must contain a frequent word "->", ">",
+	 * or "|"
+	 * @param textSet The current Element that has text
+	 * @return true if "->", ">", or "|" are found in the text, else false
+	 */
+	protected boolean articleCategoryFrequentWordDetection(Element textSet)
+	{
+		boolean wordFlag = false;
+		// retrieve text from Element node
+		String text = textSet.text();
+		// create list of frequent words
+		String[] wordList =
+		{ "->", ">", "|" };
+		// check the Element's text for each word
+		for (int i = 0; i < wordList.length; i++)
+		{
+			// if the word is found, set the flag to true
+			// and break out of loop
+			if (text.contains(wordList[i]))
+			{
+				wordFlag = true;
+				break;
+			}
+		}
+		return wordFlag;
 	}
 }

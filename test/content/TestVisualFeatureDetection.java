@@ -1036,4 +1036,189 @@ public class TestVisualFeatureDetection
 		assertFalse(vfd.articleContentExists());
 	}
 
+	/**
+	 * Tests that the category's font size is no larger than 12 pixels.
+	 */
+	@Test
+	public void testArticleCategoryFontSizeDetection()
+	{
+		// all tags except the last 2 (h6) tags are larger than 12 px
+		vfd.setFilePath("testset\\testPage18.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h6 tags < 12 px, so will pass
+			if (i == allElements.size() - 2 || i == allElements.size() - 1)
+			{
+				assertTrue(vfd.articleCategoryFontSizeDetection(allElements.get(i)));
+			}
+			// all other tags > 12 px, so will fail
+			else
+			{
+				assertFalse(vfd.articleCategoryFontSizeDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the category is in the top-half of the web page.
+	 */
+	@Test
+	public void testArticleCategoryTopHalfOfPageDetection()
+	{
+		// h1 tag, h3 tag, and first h6 tag are in the top half of elements,
+		// others are not in the first half
+		vfd.setFilePath("testset\\testPage18.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// h1 tag, h3 tag, and first h6 tag will pass
+			if (i == 1 || i == 2 || i == 3)
+			{
+				assertTrue(vfd.articleCategoryTopHalfOfPageDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCategoryTopHalfOfPageDetection(allElements.get(i)));
+			}
+		}
+
+		// a variety of tags fall in the upper half
+		vfd.setFilePath("testset\\testPage19.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// 3 p tags, h1, and h6 tag fall into top half
+			if (i == 0 || i == 1 || i == 2 || i == 6 || i == 7)
+			{
+				assertTrue(vfd.articleCategoryTopHalfOfPageDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCategoryTopHalfOfPageDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the category can be seen without paging down.
+	 */
+	@Test
+	public void testArticleCategoryPageDownDetection()
+	{
+		// all tags can be seen without paging down
+		vfd.setFilePath("testset\\testPage18.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// all tags will pass - no page down needed
+			assertTrue(vfd.articleCategoryPageDownDetection(allElements.get(i)));
+		}
+
+		// the last p tag and last h6 tags require page down, all other tags
+		// don't
+		vfd.setFilePath("testset\\testPage19.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// tags at indices 3-5 and 8 will fail
+			if (i == 3 || i == 4 || i == 5 || i == 8)
+			{
+				assertFalse(vfd.articleCategoryPageDownDetection(allElements.get(i)));
+			}
+			// all other tags will pass
+			else
+			{
+				assertTrue(vfd.articleCategoryPageDownDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the category's text length is between 8 and 30 characters
+	 */
+	@Test
+	public void testArticleCategoryTextLengthDetection()
+	{
+		// all tags except p tag will pass into the character range
+		vfd.setFilePath("testset\\testPage18.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// p tag > 30 characters, so fail
+			if (i == 0)
+			{
+				assertFalse(vfd.articleCategoryTextLengthDetection(allElements.get(i)));
+			}
+			// all other tags between 8 and 30 characters, so pass
+			else
+			{
+				assertTrue(vfd.articleCategoryTextLengthDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests that the category's text contains a frequent word ">", "->", or
+	 * "|".
+	 */
+	@Test
+	public void testArticleCategoryFrequentWordDetection()
+	{
+		// only first h6 tag has a frequent word
+		vfd.setFilePath("testset\\testPage18.html");
+		Elements allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// first h6 tag has frequent word "|"
+			if (i == 3)
+			{
+				assertTrue(vfd.articleCategoryFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCategoryFrequentWordDetection(allElements.get(i)));
+			}
+		}
+
+		// two tags have a frequent word
+		vfd.setFilePath("testset\\testPage19.html");
+		allElements = vfd.getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			// last two h6 tags contain frequent words ">" and "->"
+			if (i == 7 || i == 8)
+			{
+				assertTrue(vfd.articleCategoryFrequentWordDetection(allElements.get(i)));
+			}
+			// all other tags will fail
+			else
+			{
+				assertFalse(vfd.articleCategoryFrequentWordDetection(allElements.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * Tests all category rules together in nested conditionals.
+	 */
+	@Test
+	public void testArticleCategoryExists()
+	{
+		// contains category
+		vfd.setFilePath("testset\\testPage18.html");
+		assertTrue(vfd.articleCategoryExists());
+
+		// contains category
+		vfd.setFilePath("testset\\testPage19.html");
+		assertTrue(vfd.articleCategoryExists());
+
+		// does not contain category
+		vfd.setFilePath("testset\\testPage14.html");
+		assertFalse(vfd.articleCategoryExists());
+	}
+
 }
