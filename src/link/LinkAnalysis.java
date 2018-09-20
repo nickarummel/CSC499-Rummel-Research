@@ -39,4 +39,39 @@ public class LinkAnalysis
 		this.url = url;
 	}
 
+	/**
+	 * Checks if the URL has at least 4 or more slashes to be considered an
+	 * article.
+	 * @return true if at least 4 slashes exist in the string, otherwise false
+	 */
+	public boolean linkHasFourSlashes()
+	{
+		if (countSlashes() >= 4)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Counts the number of slashes '/' in the URL.
+	 * @return number of slashes as an int
+	 */
+	protected int countSlashes()
+	{
+		int slashCount = 0;
+		for (int i = 0; i < url.length(); i++)
+		{
+			if (url.charAt(i) == '/')
+			{
+				slashCount++;
+			}
+		}
+
+		return slashCount;
+	}
+
 }
