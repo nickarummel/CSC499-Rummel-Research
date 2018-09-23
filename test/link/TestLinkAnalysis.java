@@ -152,4 +152,25 @@ public class TestLinkAnalysis
 		assertFalse(la.linkHasLongerLength());
 	}
 
+	/**
+	 * Tests whether a link contains a reserved word.
+	 */
+	@Test
+	public void testLinkDoesNotContainReservedWord()
+	{
+		// case 1: link does not any contain reserve words
+		la.setURL(
+				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+		assertTrue(la.linkDoesNotContainReservedWord());
+
+		// case 2: link contains "video" reserve word
+		la.setURL("cnn.com/videos/tech/2015/12/04/exp-cnn-films-steve-jobs-man-in-the-machine-lost-my-wife.cnn");
+		assertFalse(la.linkDoesNotContainReservedWord());
+
+		// case 3: link contains "photo" reserve word
+		la.setURL("yahoo.com/news/photos-week-9-14-9-220000561.html");
+		assertFalse(la.linkDoesNotContainReservedWord());
+
+	}
+
 }

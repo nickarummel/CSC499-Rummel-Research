@@ -13,6 +13,13 @@ public class LinkAnalysis
 	protected String url;
 
 	/**
+	 * Constant that contains a list of reserve words that the URL should not
+	 * have.
+	 */
+	protected final String[] RESERVEWORDS =
+	{ "gallery", "video", "image", "slideshow", "photo", "episode", "player" };
+
+	/**
 	 * Constructor of class that saves the URL.
 	 * @param url The URL link to the web page as a String
 	 */
@@ -277,6 +284,24 @@ public class LinkAnalysis
 		{
 			return false;
 		}
+	}
+
+	/**
+	 * Checks if a URL contains a reserve word as specified in Ferreira et al.'s
+	 * journal article. This helps to determine if a link actually contains an
+	 * article or some other piece of information.
+	 * @return true if no reserve words were found in the URL, otherwise false
+	 */
+	public boolean linkDoesNotContainReservedWord()
+	{
+		for (int i = 0; i < RESERVEWORDS.length; i++)
+		{
+			if (url.contains(RESERVEWORDS[i]))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 }
