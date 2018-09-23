@@ -56,7 +56,7 @@ public class TestLinkAnalysis
 	{
 		// case 1: 5 slashes
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertEquals(5, la.countSlashes());
 
 		// case 2: 3 slashes
@@ -77,7 +77,7 @@ public class TestLinkAnalysis
 	{
 		// case 1: 5 slashes
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertTrue(la.linkHasFourSlashes());
 
 		// case 2: 3 slashes
@@ -99,11 +99,11 @@ public class TestLinkAnalysis
 	{
 		// case 1: ID number after slashes
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertTrue(la.linkHasIDNumber());
 
 		// case 2: ID number in title
-		la.setURL("https://www.yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
+		la.setURL("yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
 		assertTrue(la.linkHasIDNumber());
 
 		// case 3: ID number as URL parameter
@@ -113,11 +113,11 @@ public class TestLinkAnalysis
 
 		// case 4: ID number is located after an underscore
 		la.setURL(
-				"https://www.huffingtonpost.com/entry/tammie-hedges-hurricane-florence-charges-animals_us_5ba6acabe4b0375f8f9d93d6");
+				"huffingtonpost.com/entry/tammie-hedges-hurricane-florence-charges-animals_us_5ba6acabe4b0375f8f9d93d6");
 		assertTrue(la.linkHasIDNumber());
 
 		// case 5: no ID number
-		la.setURL("https://www.bbc.com/news");
+		la.setURL("bbc.com/news");
 		assertFalse(la.linkHasIDNumber());
 	}
 
@@ -129,11 +129,11 @@ public class TestLinkAnalysis
 	{
 		// case 1: date in slashes
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertTrue(la.linkHasDate());
 
 		// case 2: no date
-		la.setURL("https://www.yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
+		la.setURL("yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
 		assertFalse(la.linkHasDate());
 	}
 
@@ -145,7 +145,7 @@ public class TestLinkAnalysis
 	{
 		// case 1: link has over 50 characters
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertTrue(la.linkHasLongerLength());
 		// case 2: link is not over 50 characters
 		la.setURL("nytimes.com/section/technology");
@@ -160,7 +160,7 @@ public class TestLinkAnalysis
 	{
 		// case 1: link does not any contain reserve words
 		la.setURL(
-				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
 		assertTrue(la.linkDoesNotContainReservedWord());
 
 		// case 2: link contains "video" reserve word
@@ -170,7 +170,22 @@ public class TestLinkAnalysis
 		// case 3: link contains "photo" reserve word
 		la.setURL("yahoo.com/news/photos-week-9-14-9-220000561.html");
 		assertFalse(la.linkDoesNotContainReservedWord());
+	}
 
+	/**
+	 * Tests whether the URL ends with a slash "/".
+	 */
+	@Test
+	public void testLinkDoesNotEndWithSlash()
+	{
+		// case 1: link does not end with a slash
+		la.setURL(
+				"theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+		assertTrue(la.linkDoesNotEndWithSlash());
+
+		// case 2: link does end with a slash
+		la.setURL("yahoo.com/news/science/");
+		assertFalse(la.linkDoesNotEndWithSlash());
 	}
 
 }

@@ -304,4 +304,21 @@ public class LinkAnalysis
 		return true;
 	}
 
+	/**
+	 * Checks to see if a URL ends with a slash, representing the idea that the
+	 * link may be a navigation menu rather than a page containing an article.
+	 * @return true if the URL string does not end with a slash, otherwise false
+	 */
+	public boolean linkDoesNotEndWithSlash()
+	{
+		if (url.endsWith("/"))
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 }
