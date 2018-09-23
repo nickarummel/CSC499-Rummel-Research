@@ -261,4 +261,22 @@ public class LinkAnalysis
 		}
 	}
 
+	/**
+	 * Checks if the URL string has a longer length. A URL is most likely to be
+	 * an article if the length is at least 50 characters.
+	 * @return true if the link's length is at least 50 characters, otherwise
+	 *         false
+	 */
+	public boolean linkHasLongerLength()
+	{
+		if (url.length() >= 50)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 }

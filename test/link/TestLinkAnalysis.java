@@ -137,4 +137,19 @@ public class TestLinkAnalysis
 		assertFalse(la.linkHasDate());
 	}
 
+	/**
+	 * Tests that a link's length is at least 50 characters in length.
+	 */
+	@Test
+	public void testLinkHasLongerLength()
+	{
+		// case 1: link has over 50 characters
+		la.setURL(
+				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+		assertTrue(la.linkHasLongerLength());
+		// case 2: link is not over 50 characters
+		la.setURL("nytimes.com/section/technology");
+		assertFalse(la.linkHasLongerLength());
+	}
+
 }
