@@ -76,9 +76,9 @@ public class LinkAnalysis
 
 	/**
 	 * Checks if the URL instance variable has an identification number in the
-	 * String. The ID number could come after a slash "/", after a title
-	 * following a "-", as a URL parameter following "&id=", or following an
-	 * underscore "_".
+	 * String to be considered an article. The ID number could come after a
+	 * slash "/", after a title following a "-", as a URL parameter following
+	 * "&id=", or following an underscore "_".
 	 * @return true if an ID number exists, otherwise false
 	 */
 	public boolean linkHasIDNumber()
@@ -200,6 +200,65 @@ public class LinkAnalysis
 		}
 
 		return idFlag;
+	}
+
+	/**
+	 * Checks to see if a link has a date embedded in the URL String. If a link
+	 * has a date, it is in the format: yyyy/mm/dd.
+	 * @return true if the date is found, otherwise false
+	 */
+	public boolean linkHasDate()
+	{
+		boolean dateFlag = false;
+		String[] tokens = url.split("/");
+		// check each token
+		for (int i = 0; i < tokens.length; i++)
+		{
+			// token must have a length of 4, be all ints,
+			// and there must be two more elements in the array
+			if (tokens[i].length() == 4 && checkIfAllCharsAreInts(tokens[i]) && i < tokens.length - 2)
+			{
+				// check to see if the next two tokens have
+				// a length of 1 or 2
+				if ((tokens[i + 1].length() == 1 || tokens[i + 1].length() == 2)
+						&& (tokens[i + 2].length() == 1 || tokens[i + 2].length() == 2))
+				{
+					// check if all characters in next two tokens are ints
+					if (checkIfAllCharsAreInts(tokens[i + 1]) && checkIfAllCharsAreInts(tokens[i + 2]))
+					{
+						dateFlag = true;
+						break;
+					}
+				}
+			}
+		}
+		return dateFlag;
+	}
+
+	/**
+	 * Checks that each character is an integer in a String.
+	 * @param data The String to be checked.
+	 * @return true if all characters in the String are a number, otherwise
+	 *         false.
+	 */
+	protected boolean checkIfAllCharsAreInts(String data)
+	{
+		int count = 0;
+		for (int i = 0; i < data.length(); i++)
+		{
+			if (data.charAt(i) >= '0' && data.charAt(i) <= '9')
+			{
+				count++;
+			}
+		}
+		if (count == data.length())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 }

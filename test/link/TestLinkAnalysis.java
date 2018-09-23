@@ -103,22 +103,38 @@ public class TestLinkAnalysis
 		assertTrue(la.linkHasIDNumber());
 
 		// case 2: ID number in title
-		la.setURL(
-				"https://www.yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
+		la.setURL("https://www.yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
 		assertTrue(la.linkHasIDNumber());
 
 		// case 3: ID number as URL parameter
 		la.setURL(
 				"abcnews.go.com/GMA/Living/viral-post-volunteer-napping-shelter-cats-brings-funds/story?id=57965675&cid=clicksource_19216223_4_article%20roll_articleroll_hed");
 		assertTrue(la.linkHasIDNumber());
-		
+
 		// case 4: ID number is located after an underscore
-		la.setURL("https://www.huffingtonpost.com/entry/tammie-hedges-hurricane-florence-charges-animals_us_5ba6acabe4b0375f8f9d93d6");
+		la.setURL(
+				"https://www.huffingtonpost.com/entry/tammie-hedges-hurricane-florence-charges-animals_us_5ba6acabe4b0375f8f9d93d6");
 		assertTrue(la.linkHasIDNumber());
-		
+
 		// case 5: no ID number
 		la.setURL("https://www.bbc.com/news");
 		assertFalse(la.linkHasIDNumber());
+	}
+
+	/**
+	 * Tests that a link contains a date in the URL String.
+	 */
+	@Test
+	public void testLinkHasDate()
+	{
+		// case 1: date in slashes
+		la.setURL(
+				"www.theverge.com/2018/9/20/17883242/amazon-alexa-event-2018-news-recap-echo-auto-dot-sub-link-auto-microwave");
+		assertTrue(la.linkHasDate());
+
+		// case 2: no date
+		la.setURL("https://www.yahoo.com/news/cruz-orourke-face-off-testy-texas-senate-debate-023824069.html");
+		assertFalse(la.linkHasDate());
 	}
 
 }
