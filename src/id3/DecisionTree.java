@@ -1,5 +1,7 @@
 package id3;
 
+import java.util.ArrayList;
+
 /**
  * The class for the DecisionTree containing code to traverse and manipulate the
  * decision tree. The decision tree will be used as part of the ID3 algorithm
@@ -95,89 +97,76 @@ public class DecisionTree
 	 * @param totalCount the total number of elements
 	 * @return the entropy as a double
 	 */
-	public double entropy(int attrCount, int totalCount)
+	protected double entropy(int attrCount, int totalCount)
 	{
 		double yesRatio = ((double) attrCount) / totalCount;
 		double noRatio = ((double) (totalCount - attrCount)) / totalCount;
 		double result;
+		// both ratios are 0, so return 0
 		if (yesRatio == 0 && noRatio == 0)
 		{
 			result = 0.0;
 		}
+		// yes ratio is 0, so only calculate no ratio
 		else if (yesRatio == 0)
 		{
 			result = -1.0 * (noRatio * (Math.log(noRatio) / logBase2));
 		}
+		// no ratio is 0, so only calculate yes ratio
 		else if (noRatio == 0)
 		{
 			result = -1.0 * (yesRatio * (Math.log(yesRatio) / logBase2));
 		}
+		// otherwise, calculate the yes and no ratios together
 		else
 		{
 			result = -1.0 * ((yesRatio * (Math.log(yesRatio) / logBase2)) + (noRatio * (Math.log(noRatio) / logBase2)));
 		}
-		
+
 		System.out.println("Entropy: " + result);
-		
+
 		return result;
 	}
 
 	/**
-	 * Calculates the information gain for each article detection feature.
+	 * Finds the index containing the largest gain for a list of article
+	 * detection features.
 	 * @param actual the original data that the document is an article or not.
 	 * @param results 2D array containing the data of each feature being found.
 	 * @return the index of feature with the largest gain
-	 * @throws Exception if the sum of yes and no counts does not equal the
-	 *             length of the array.
 	 */
-	public int calculateInfoGain(boolean[] actual, boolean[][] results) throws Exception
+	public int getIndexOfLargestInfoGain(boolean[] actual, boolean[][] results)
 	{
-		int actualYesCount = 0;
-		int actualNoCount = 0;
-		int actualLen = actual.length;
-		for (int i = 0; i < actualLen; i++)
-		{
-			if (actual[i] == true)
-			{
-				actualYesCount++;
-			}
-			else if (actual[i] == false)
-			{
-				actualNoCount++;
-			}
-		}
-		if (actualYesCount + actualNoCount != actualLen)
-		{
-			throw new Exception("Sum of yes/no counts does not equal length of array.");
-		}
+		// create list of indices that contain a yes (true) or no (false)
+		// from the actual data
+		ArrayList<Integer> actualYesCount = countOfBooleans(actual, true);
+		ArrayList<Integer> actualNoCount = countOfBooleans(actual, false);
+		int actualLen = actualYesCount.size() + actualNoCount.size();
 
+		// create a list of indices that contain
 		double[] gain = new double[results.length];
 		for (int i = 0; i < results.length; i++)
 		{
-			int yesCount = 0;
-			int noCount = 0;
-			int total = 0;
-			for (int j = 0; j < results[i].length; j++)
-			{
-				if (results[i][j] == true)
-				{
-					yesCount++;
-					total++;
-				}
-				else if (results[i][j] == false)
-				{
-					noCount++;
-					total++;
-				}
-			}
-			gain[i] = entropy(actualYesCount, actualLen) - ((yesCount / total) * entropy(yesCount, total))
-					- ((noCount / total) * entropy(noCount, total));
-			
+			// get counts of trues and falses from the results list
+			ArrayList<Integer> yesCount = countOfBooleans(results[i], true);
+			ArrayList<Integer> noCount = countOfBooleans(results[i], false);
+
+			// total is the sum of trues and falses from results list
+			int total = yesCount.size() + noCount.size();
+
+			// counts indices that are found in two lists
+			int yesIndices = countOfIndicesFound(yesCount, actualYesCount);
+			int noIndices = countOfIndicesFound(noCount, actualNoCount);
+
+			// calculate information gain
+			gain[i] = gain(actualYesCount.size(), actualLen, yesCount.size(), noCount.size(), total, yesIndices,
+					noIndices);
 			System.out.println("Calculated Gain of " + i + ": " + gain[i]);
 		}
 
+		// find the largest value from the calculate gains list
 		int largest = 0;
-		for (int i = 1; i < gain[i]; i++)
+		for (int i = 1; i < gain.length; i++)
 		{
 			if (gain[i] > gain[largest])
 			{
@@ -187,4 +176,70 @@ public class DecisionTree
 
 		return largest;
 	}
+
+	/**
+	 * Calculates the information gain from a variety of values. This method
+	 * assumes that information entropy is being calculated correctly.
+	 * @param actualYesCount the number of trues counted from the actual data
+	 * @param actualTotal the sum of trues and falses counted from actual data
+	 * @param yesCount the number of trues counted from the experiment data
+	 * @param noCount the number of falses counted from the experiment data
+	 * @param total the sum of trues and falses counted from the experiment data
+	 * @param yesIndices the number of indices with true found in two lists
+	 * @param noIndices the number of indices with false found in two lists
+	 * @return the information gain calculated
+	 */
+	protected double gain(int actualYesCount, int actualTotal, int yesCount, int noCount, int total, int yesIndices,
+			int noIndices)
+	{
+		double entS = entropy(actualYesCount, actualTotal);
+		double entYes = ((double) yesCount / total) * entropy(yesIndices, yesCount);
+		double entNo = ((double) noCount / total) * entropy(noIndices, noCount);
+		return (entS - entYes - entNo);
+	}
+
+	/**
+	 * A method to compare a list of indices to another list. If the index from
+	 * the first list is found in the second list, then the count is
+	 * incremented.
+	 * @param results the resulting data from the experiment.
+	 * @param actual the actual data from before the experiment
+	 * @return the number of indices found in both lists.
+	 */
+	protected int countOfIndicesFound(ArrayList<Integer> results, ArrayList<Integer> actual)
+	{
+		int count = 0;
+		for (int i = 0; i < results.size(); i++)
+		{
+			for (int j = 0; j < actual.size(); j++)
+			{
+				if (results.get(i) == actual.get(j))
+				{
+					count++;
+				}
+			}
+		}
+
+		return count;
+	}
+
+	/**
+	 * Stores each index that contains a specific type of boolean in a list.
+	 * @param list the array list of booleans to check
+	 * @param checkType look for either true or false values
+	 * @return the ArrayList of indices where the boolean exists
+	 */
+	protected ArrayList<Integer> countOfBooleans(boolean[] list, boolean checkType)
+	{
+		ArrayList<Integer> count = new ArrayList<Integer>();
+		for (int i = 0; i < list.length; i++)
+		{
+			if (list[i] == checkType)
+			{
+				count.add(i);
+			}
+		}
+		return count;
+	}
+
 }

@@ -103,22 +103,34 @@ public class TestDecisionTree
 	}
 
 	/**
-	 * Checks that information gain and entropy is calculated correctly.
+	 * Tests the information gain calculation method using different integer
+	 * values as parameters.
+	 */
+	@Test
+	public void testGainCalculation()
+	{
+		double result = tree.gain(5, 10, 4, 6, 10, 3, 2);
+		assertEquals(0.1245, result, 0.0001);
+
+		result = tree.gain(5, 10, 2, 8, 10, 0, 5);
+		assertEquals(0.2365, result, 0.0001);
+
+		result = tree.gain(5, 10, 7, 3, 10, 4, 1);
+		assertEquals(0.0349, result, 0.0001);
+
+	}
+
+	/**
+	 * Checks that information gain and entropy is calculated correctly to find
+	 * the largest gain from randomly generated data.
 	 * @throws Exception if data is not either true or false.
 	 */
 	@Test
-	public void testCalculateInfoGain() throws Exception
+	public void testGetIndexOfLargestInfoGain()
 	{
 
 		boolean[] actualData =
 		{ true, true, false, false, true, false, true, false, false, true };
-		/*
-		 * boolean[][] randomData = { { false, false, true }, { true, false,
-		 * true }, { false, true, false }, { false, true, true }, { false,
-		 * false, false }, { true, false, true }, { true, false, true }, {
-		 * false, false, false }, { false, false, true }, { true, false, true }
-		 * };
-		 */
 		boolean[][] randomData =
 		{
 				{ false, true, false, false, false, true, true, false, false, true },
@@ -129,7 +141,7 @@ public class TestDecisionTree
 
 		// should return index 1, meaning the second attribute has the highest
 		// information gain
-		assertEquals(1, tree.calculateInfoGain(actualData, randomData));
+		assertEquals(1, tree.getIndexOfLargestInfoGain(actualData, randomData));
 	}
 
 }
