@@ -2,6 +2,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 import content.TestVisualFeatureDetection;
+import id3.TestDecisionTree;
+import id3.TestTreeNode;
 import link.TestLinkAnalysis;
 
 /**
@@ -13,7 +15,9 @@ import link.TestLinkAnalysis;
 @Suite.SuiteClasses(
 { 
 	TestVisualFeatureDetection.class,
-	TestLinkAnalysis.class
+	TestLinkAnalysis.class,
+	TestTreeNode.class,
+	TestDecisionTree.class
 
 })
 
