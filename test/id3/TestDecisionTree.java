@@ -2,6 +2,8 @@ package id3;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -142,6 +144,80 @@ public class TestDecisionTree
 		// should return index 1, meaning the second attribute has the highest
 		// information gain
 		assertEquals(1, tree.getIndexOfLargestInfoGain(actualData, randomData));
+	}
+
+	/**
+	 * Tests that a simple tree can be built (root with yes/no branches having
+	 * nodes).
+	 */
+	@Test
+	public void testBuildTree()
+	{
+		String[] descriptions =
+		{ "Question 1", "Question 2", "Question 3" };
+		boolean[] actualData =
+		{ true, true, false, false, true, false, true, false, false, true };
+		boolean[][] randomData =
+		{
+				{ false, true, false, false, false, true, true, false, false, true },
+				{ false, false, true, true, false, false, false, false, false, false },
+				{ true, true, false, true, false, true, true, false, true, true }
+
+		};
+
+		// root will be question #2
+		ArrayList<Integer> usedDataLoc = new ArrayList<Integer>();
+		int index = tree.getIndexOfLargestInfoGain(actualData, randomData);
+		assertEquals(1, index);
+		usedDataLoc.add(index);
+		tree.setRoot(new TreeNode(0, descriptions[index]));
+
+		// yes branch will be No because gain for each of remaining attributes
+		// is 0
+		boolean[][] resized = tree.resizeDataArray(usedDataLoc, randomData);
+		ArrayList<Integer> yes = tree.countOfBooleans(randomData[index], true);
+		boolean[] resizedActual = new boolean[yes.size()];
+		for (int i = 0; i < yes.size(); i++)
+		{
+			resizedActual[i] = actualData[yes.get(i)];
+		}
+		boolean[][] resizeReady = new boolean[resized.length][yes.size()];
+		for (int i = 0; i < resized.length; i++)
+		{
+			for (int j = 0; j < yes.size(); j++)
+			{
+				resizeReady[i][j] = resized[i][yes.get(j)];
+			}
+		}
+		int nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+		assertEquals(-1, nextIndex);
+		tree.getRoot().setYesBranch(new TreeNode(1, "No - all gains are 0"));
+
+		// no branch will be question #1
+		// (question #3 not used since yes branch is automatic no)
+		ArrayList<Integer> no = tree.countOfBooleans(randomData[index], false);
+		resizedActual = new boolean[no.size()];
+		for (int i = 0; i < no.size(); i++)
+		{
+			resizedActual[i] = actualData[no.get(i)];
+		}
+		resizeReady = new boolean[resized.length][no.size()];
+		for (int i = 0; i < resized.length; i++)
+		{
+			for (int j = 0; j < no.size(); j++)
+			{
+				resizeReady[i][j] = resized[i][no.get(j)];
+			}
+		}
+		nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+		assertEquals(0, nextIndex);
+		tree.getRoot().setNoBranch(new TreeNode(2, descriptions[nextIndex]));
+
+		TreeNode node = tree.getRoot();
+		System.out.println(node.nodeId + ": " + node.description);
+		System.out.println("    " + node.yesBranch.nodeId + ": " + node.yesBranch.description);
+		System.out.println("    " + node.noBranch.nodeId + ": " + node.noBranch.description);
+
 	}
 
 }

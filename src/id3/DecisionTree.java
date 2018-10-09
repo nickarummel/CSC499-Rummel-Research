@@ -174,6 +174,10 @@ public class DecisionTree
 			}
 		}
 
+		if (largest == 0 && gain[largest] == 0)
+		{
+			largest = -1;
+		}
 		return largest;
 	}
 
@@ -193,8 +197,25 @@ public class DecisionTree
 			int noIndices)
 	{
 		double entS = entropy(actualYesCount, actualTotal);
-		double entYes = ((double) yesCount / total) * entropy(yesIndices, yesCount);
-		double entNo = ((double) noCount / total) * entropy(noIndices, noCount);
+		double entYes;
+		if (yesCount == 0)
+		{
+			entYes = 0.0;
+		}
+		else
+		{
+			entYes = ((double) yesCount / total) * entropy(yesIndices, yesCount);
+		}
+		double entNo;
+		if (noCount == 0)
+		{
+			entNo = 0.0;
+		}
+		else
+		{
+			entNo = ((double) noCount / total) * entropy(noIndices, noCount);
+
+		}
 		return (entS - entYes - entNo);
 	}
 
@@ -240,6 +261,45 @@ public class DecisionTree
 			}
 		}
 		return count;
+	}
+
+	/**
+	 * Resizes an 2D boolean array using a list of indices already used.
+	 * @param used the list of indices already used for the tree
+	 * @param data the array to be resized
+	 * @return the resized 2D boolean array of data
+	 */
+	public boolean[][] resizeDataArray(ArrayList<Integer> used, boolean[][] data)
+	{
+		// calculate new size of 2D array and initialize array
+		int row = data.length - used.size();
+		int col = data[0].length;
+		boolean[][] newData = new boolean[row][col];
+
+		// loop through each row of original array
+		int count = 0;
+		for (int i = 0; i < data.length; i++)
+		{
+			boolean found = false;
+			// see if current index is in used index list
+			for (int j = 0; j < used.size(); j++)
+			{
+				// set flag to true if index found in list
+				if (used.get(j) == i)
+				{
+					found = true;
+				}
+			}
+			// add data to new array if not found in list
+			// and it will not step off end of array
+			if (found == false && count < row)
+			{
+				newData[count] = data[i];
+				count++;
+			}
+		}
+
+		return newData;
 	}
 
 }
