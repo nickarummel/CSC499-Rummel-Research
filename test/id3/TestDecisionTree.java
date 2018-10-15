@@ -174,50 +174,27 @@ public class TestDecisionTree
 
 		// yes branch will be No because gain for each of remaining attributes
 		// is 0
-		boolean[][] resized = tree.resizeDataArray(usedDataLoc, randomData);
+		boolean[][] resized = tree.resizeDataArrayFromUsedIndices(usedDataLoc, randomData);
 		ArrayList<Integer> yes = tree.countOfBooleans(randomData[index], true);
-		boolean[] resizedActual = new boolean[yes.size()];
-		for (int i = 0; i < yes.size(); i++)
-		{
-			resizedActual[i] = actualData[yes.get(i)];
-		}
-		boolean[][] resizeReady = new boolean[resized.length][yes.size()];
-		for (int i = 0; i < resized.length; i++)
-		{
-			for (int j = 0; j < yes.size(); j++)
-			{
-				resizeReady[i][j] = resized[i][yes.get(j)];
-			}
-		}
+		boolean[] resizedActual = tree.resizeActualDataArray(yes, actualData);
+		boolean[][] resizeReady = tree.resizeResultDataArray(yes, resized);
 		int nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
 		assertEquals(-1, nextIndex);
-		tree.getRoot().setYesBranch(new TreeNode(1, "No - all gains are 0"));
+		tree.addNodeToBranch(new TreeNode(1, "No - all gains are 0"), 0, true);
 
 		// no branch will be question #1
 		// (question #3 not used since yes branch is automatic no)
 		ArrayList<Integer> no = tree.countOfBooleans(randomData[index], false);
-		resizedActual = new boolean[no.size()];
-		for (int i = 0; i < no.size(); i++)
-		{
-			resizedActual[i] = actualData[no.get(i)];
-		}
-		resizeReady = new boolean[resized.length][no.size()];
-		for (int i = 0; i < resized.length; i++)
-		{
-			for (int j = 0; j < no.size(); j++)
-			{
-				resizeReady[i][j] = resized[i][no.get(j)];
-			}
-		}
+		resizedActual = tree.resizeActualDataArray(no, actualData);
+		resizeReady = tree.resizeResultDataArray(no, resized);
 		nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+		// index 0 of resized data
 		assertEquals(0, nextIndex);
-		tree.getRoot().setNoBranch(new TreeNode(2, descriptions[nextIndex]));
+		// index 0 of original data
+		assertEquals(0, no.get(nextIndex).intValue());
+		tree.addNodeToBranch(new TreeNode(2, descriptions[no.get(nextIndex)]), 0, false);
 
-		TreeNode node = tree.getRoot();
-		System.out.println(node.nodeId + ": " + node.description);
-		System.out.println("    " + node.yesBranch.nodeId + ": " + node.yesBranch.description);
-		System.out.println("    " + node.noBranch.nodeId + ": " + node.noBranch.description);
-
+		tree.printTree();
 	}
 
 }

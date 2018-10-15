@@ -269,7 +269,7 @@ public class DecisionTree
 	 * @param data the array to be resized
 	 * @return the resized 2D boolean array of data
 	 */
-	public boolean[][] resizeDataArray(ArrayList<Integer> used, boolean[][] data)
+	public boolean[][] resizeDataArrayFromUsedIndices(ArrayList<Integer> used, boolean[][] data)
 	{
 		// calculate new size of 2D array and initialize array
 		int row = data.length - used.size();
@@ -300,6 +300,92 @@ public class DecisionTree
 		}
 
 		return newData;
+	}
+
+	/**
+	 * Resizes the actual data array to contain the indices that line up with
+	 * those in the given list.
+	 * @param list ArrayList of indices to be used
+	 * @param origData the array to be resized
+	 * @return the resized data as a boolean array
+	 */
+	public boolean[] resizeActualDataArray(ArrayList<Integer> list, boolean[] origData)
+	{
+		boolean[] newArray = new boolean[list.size()];
+		for (int i = 0; i < list.size(); i++)
+		{
+			newArray[i] = origData[list.get(i)];
+		}
+		return newArray;
+	}
+
+	/**
+	 * Resizes the result data array to contain the indices that line up with
+	 * those in the given list.
+	 * @param list ArrayList of indices to be used
+	 * @param origData the 2D array to be resized
+	 * @return the resized data as a 2D boolean array
+	 */
+	public boolean[][] resizeResultDataArray(ArrayList<Integer> list, boolean[][] origData)
+	{
+		boolean[][] newArray = new boolean[origData.length][list.size()];
+		for (int i = 0; i < origData.length; i++)
+		{
+			for (int j = 0; j < list.size(); j++)
+			{
+				newArray[i][j] = origData[i][list.get(j)];
+			}
+		}
+		return newArray;
+	}
+
+	/**
+	 * Adds a branch to a given node.
+	 * @param node the TreeNode to be added to the branch.
+	 * @param curId the node ID of where the node will be added
+	 * @param branchChoice true if the yes branch, false if the no branch
+	 */
+	public void addNodeToBranch(TreeNode node, int curId, boolean branchChoice)
+	{
+		TreeNode curNode = getNodeById(root, curId);
+		if (branchChoice == true)
+		{
+			curNode.setYesBranch(node);
+		}
+		else
+		{
+			curNode.setNoBranch(node);
+		}
+	}
+
+	/**
+	 * Prints out the tree by calling the outputTree() method.
+	 */
+	public void printTree()
+	{
+		outputTree("1", root);
+	}
+
+	/**
+	 * Recursive method that prints out the tree to the user (first the yes
+	 * branches, then the no branches).
+	 * @param tag the tag string to be printed to identify the node level
+	 * @param node the current TreeNode
+	 */
+	private void outputTree(String tag, TreeNode node)
+	{
+		if (node == null)
+		{
+			return;
+		}
+		else
+		{
+			System.out.println("[" + tag + "] " + node.getNodeId() + ": " + node.getNodeDescription());
+
+			outputTree(tag + ".1", node.getYesBranch());
+			outputTree(tag + ".2", node.getNoBranch());
+
+		}
 	}
 
 }
