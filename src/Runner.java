@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import content.VisualFeatureDetection;
+import id3.DecisionTree;
+import id3.TreeNode;
 import link.LinkAnalysis;
 
 /**
@@ -29,11 +31,13 @@ public class Runner
 	private final static int VFCOUNT = 8;
 	private final static int LACOUNT = 6;
 
-	private final static String[] DESCRPTIONS =
+	private final static String[] DESCRIPTIONS =
 	{ "Article Author Exists?", "Article Category Exists?", "Article Comment Link Exists?", "Article Content Exists?",
 			"Article Publication Date Exists?", "Article Related News Link Exists?", "Article Source Exists?",
 			"Article Title Exists?", "Link Does Not Contain Reserve Word?", "Link Does Not End With Slash?",
 			"Link Has Date?", "Link Has Four Slashes?", "Link Has ID Number?", "Link Has Longer Length?" };
+	
+	private final static int[] TREELEVELS = {1, 3, 5, 9, 65};
 
 	/**
 	 * Main method
@@ -97,6 +101,9 @@ public class Runner
 		for (int i = 0; i < ENTRIES-300; i++)
 		{
 			int j = testingSet.get(i);
+			
+			System.out.println("Testing article #" + j);
+			
 //			VisualFeatureDetection vfd = new VisualFeatureDetection(DATASETPATH + htmlFilePaths[i]);
 //			LinkAnalysis la = new LinkAnalysis(htmlURL[i]);
 			VisualFeatureDetection vfd = new VisualFeatureDetection(DATASETPATH + htmlFilePaths[j]);
@@ -120,12 +127,109 @@ public class Runner
 		
 		for(int i = 0; i < resultingData.length; i++)
 		{
-			System.out.print(DESCRPTIONS[i] + ",");
+			System.out.print(DESCRIPTIONS[i] + ",");
 			for(int j = 0; j < resultingData[0].length; j++)
 			{
 				System.out.print(resultingData[i][j] + ",");
 			}
 			System.out.print("\n");
+		}
+		
+		DecisionTree tree = new DecisionTree(null);
+		ArrayList<Integer> usedDataLoc = new ArrayList<Integer>();
+		boolean[] actualData = htmlIsArticle.clone();
+		boolean[][] randomData = resultingData.clone();
+		int index = tree.getIndexOfLargestInfoGain(actualData, randomData);
+		//tree.setRoot(new TreeNode(0, DESCRIPTIONS[index]));
+		
+		/*
+		boolean[][] resized = tree.resizeDataArrayFromUsedIndices(usedDataLoc, randomData);
+		ArrayList<Integer> yes = tree.countOfBooleans(randomData[index], true);
+		boolean[] resizedActual = tree.resizeActualDataArray(yes, actualData);
+		boolean[][] resizeReady = tree.resizeResultDataArray(yes, resized);
+		int nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+		*/
+		boolean[][] resized;
+		boolean[] resizedActual;
+		boolean[][] resizeReady;
+		int nextIndex = index;
+		int prevNoNode = 0;
+		int prevYesNode = 0;
+		int levelCount = 0;
+		
+		int i = 0;
+		while(usedDataLoc.size() < randomData.length && i < randomData.length)
+		{
+			
+			
+			if(i == 0)
+			{
+				usedDataLoc.add(nextIndex);
+				tree.setRoot(new TreeNode(0, DESCRIPTIONS[nextIndex]));
+				levelCount++;
+			}
+			else if(i%2 == 1)
+			{
+				ArrayList<Integer> yes = tree.countOfBooleans(randomData[nextIndex], true);
+				resized = tree.resizeDataArrayFromUsedIndices(usedDataLoc, randomData);
+				resizedActual = tree.resizeActualDataArray(yes, actualData);
+				resizeReady = tree.resizeResultDataArray(yes, resized);
+				
+				nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+				if(nextIndex == -1)
+				{
+					tree.addNodeToBranch(new TreeNode(i, "Always No"), prevYesNode, true);
+					nextIndex = index;
+				}
+				else if(nextIndex < -1)
+				{
+					int realIndex = (nextIndex + 2) * -1;
+					tree.addNodeToBranch(new TreeNode(i, "Always Yes"), prevYesNode, true);
+					nextIndex = index;
+					
+				}
+				else
+				{
+					usedDataLoc.add(nextIndex);
+					tree.addNodeToBranch(new TreeNode(i, DESCRIPTIONS[nextIndex]), prevYesNode, true);
+				}
+				index = nextIndex;
+				prevYesNode = i;
+				
+			}
+			else if(i%2 == 0)
+			{
+				ArrayList<Integer> no = tree.countOfBooleans(randomData[nextIndex], false);
+				resized = tree.resizeDataArrayFromUsedIndices(usedDataLoc, randomData);
+				resizedActual = tree.resizeActualDataArray(no, actualData);
+				resizeReady = tree.resizeResultDataArray(no, resized);
+				
+				nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+				if(nextIndex == -1)
+				{
+					tree.addNodeToBranch(new TreeNode(i, "Always No"), prevNoNode, false);
+					nextIndex = index;
+				}
+				else if(nextIndex < -1)
+				{
+					int realIndex = (nextIndex + 2) * -1;
+					tree.addNodeToBranch(new TreeNode(i, "Always Yes"), prevNoNode, false);
+					nextIndex = index;
+				}
+				else
+				{
+					usedDataLoc.add(nextIndex);
+					tree.addNodeToBranch(new TreeNode(i, DESCRIPTIONS[nextIndex]), prevNoNode, false);
+				}
+				
+				index = nextIndex;
+				prevNoNode = i;
+			}
+			
+			System.out.print("\n");
+			tree.printTree();
+			
+			i++;
 		}
 
 	}

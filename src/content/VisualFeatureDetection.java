@@ -400,6 +400,7 @@ public class VisualFeatureDetection
 			if (tokens[k].contains("em") || tokens[k].contains("%") || tokens[k].contains("px"))
 			{
 				splitIndex = k;
+				// System.out.println(tokens[k]);
 				try
 				{
 					// try to get 3 digits for size
@@ -409,6 +410,15 @@ public class VisualFeatureDetection
 					if (fontSize.contains("p") || fontSize.contains("e") || fontSize.contains("%"))
 					{
 						fontSize = tokens[k].substring(1, 4);
+					}
+					if (fontSize.contains("p") || fontSize.contains("e") || fontSize.contains("%"))
+					{
+						fontSize = tokens[k].substring(1, 3);
+					}
+					if (fontSize.contains("p") || fontSize.contains("e") || fontSize.contains("r")
+							|| fontSize.contains("%"))
+					{
+						fontSize = tokens[k].substring(1, 2);
 					}
 				}
 				catch (Exception e)
@@ -440,7 +450,7 @@ public class VisualFeatureDetection
 			String trimmed = fontSize.trim();
 			// if it still contains non-number characters, take the substring
 			// again
-			if (trimmed.charAt(trimmed.length() - 1) > '9')
+			if (trimmed.length() != 0 && trimmed.charAt(trimmed.length() - 1) > '9')
 			{
 				trimmed = trimmed.substring(0, trimmed.length() - 1);
 			}
@@ -607,7 +617,7 @@ public class VisualFeatureDetection
 			// makes sure that the color attribute was not cut off
 			// from another attribute containing the word color
 			// (example: background-color)
-			if (!tokens[i].endsWith("-"))
+			if (tokens[i] != null && !tokens[i].endsWith("-"))
 			{
 				// # character starts the hex color code
 				if (tokens[i].contains("#"))
@@ -618,7 +628,8 @@ public class VisualFeatureDetection
 					// run until the the end of the string is reached, the
 					// character is ';', ')', or '"'
 					while ((index < tokens[i].length()) && tokens[i].charAt(index) != ';'
-							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"')
+							&& tokens[i].charAt(index) != ')' && tokens[i].charAt(index) != '\"'
+							&& tokens[i].charAt(index) != '}')
 					{
 						// concatenate characters together
 						hex = hex + tokens[i].charAt(index);
@@ -1775,7 +1786,7 @@ public class VisualFeatureDetection
 	 * @return true if all rules match for an element, false if no elements from
 	 *         the set match all rules
 	 */
-	protected boolean articleContentExists()
+	public boolean articleContentExists()
 	{
 		Elements allElements = getAllTextElements();
 		boolean contentExists = false;

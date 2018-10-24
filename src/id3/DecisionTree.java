@@ -123,7 +123,7 @@ public class DecisionTree
 			result = -1.0 * ((yesRatio * (Math.log(yesRatio) / logBase2)) + (noRatio * (Math.log(noRatio) / logBase2)));
 		}
 
-		System.out.println("Entropy: " + result);
+		//System.out.println("Entropy: " + result);
 
 		return result;
 	}
@@ -161,7 +161,7 @@ public class DecisionTree
 			// calculate information gain
 			gain[i] = gain(actualYesCount.size(), actualLen, yesCount.size(), noCount.size(), total, yesIndices,
 					noIndices);
-			System.out.println("Calculated Gain of " + i + ": " + gain[i]);
+			//System.out.println("Calculated Gain of " + i + ": " + gain[i]);
 		}
 
 		// find the largest value from the calculate gains list
@@ -177,6 +177,10 @@ public class DecisionTree
 		if (largest == 0 && gain[largest] == 0)
 		{
 			largest = -1;
+		}
+		else if (gain[largest] == 1)
+		{
+			largest = -2 - largest;
 		}
 		return largest;
 	}
@@ -250,7 +254,7 @@ public class DecisionTree
 	 * @param checkType look for either true or false values
 	 * @return the ArrayList of indices where the boolean exists
 	 */
-	protected ArrayList<Integer> countOfBooleans(boolean[] list, boolean checkType)
+	public ArrayList<Integer> countOfBooleans(boolean[] list, boolean checkType)
 	{
 		ArrayList<Integer> count = new ArrayList<Integer>();
 		for (int i = 0; i < list.length; i++)
@@ -380,8 +384,13 @@ public class DecisionTree
 		}
 		else
 		{
-			System.out.println("[" + tag + "] " + node.getNodeId() + ": " + node.getNodeDescription());
-
+			int count = tag.split("\\.").length - 1;
+			String spaces = "";
+			for(int i = 0; i < count; i++)
+			{
+				spaces += "   ";
+			}
+			System.out.println(spaces + "[" + tag + "] " + node.getNodeId() + ": " + node.getNodeDescription());
 			outputTree(tag + ".1", node.getYesBranch());
 			outputTree(tag + ".2", node.getNoBranch());
 
