@@ -37,8 +37,6 @@ public class Runner
 			"Article Title Exists?", "Link Does Not Contain Reserve Word?", "Link Does Not End With Slash?",
 			"Link Has Date?", "Link Has Four Slashes?", "Link Has ID Number?", "Link Has Longer Length?" };
 
-	private final static int[] TREELEVELS =
-	{ 1, 3, 5, 9, 65 };
 
 	/**
 	 * Main method
@@ -50,6 +48,7 @@ public class Runner
 		htmlIsArticle = new boolean[ENTRIES];
 		htmlURL = new String[ENTRIES];
 
+		// read in data set file path, actual article value, and article link
 		File dataset = new File("dataset\\ready.csv");
 		try
 		{
@@ -83,6 +82,7 @@ public class Runner
 			e.printStackTrace();
 		}
 
+		// create training set
 		System.out.println("Training Set:");
 		ArrayList<Integer> trainingSet = chooseRandomTrainingSet(ENTRIES - TESTSETSIZE);
 		for (int i = 0; i < trainingSet.size(); i++)
@@ -90,6 +90,7 @@ public class Runner
 			System.out.println(trainingSet.get(i));
 		}
 
+		// create testing set
 		System.out.println("Testing Set: ");
 		ArrayList<Integer> testingSet = createTestSetList(trainingSet);
 		for (int i = 0; i < testingSet.size(); i++)
@@ -97,17 +98,16 @@ public class Runner
 			System.out.println(testingSet.get(i));
 		}
 
-		boolean[][] resultingData = new boolean[VFCOUNT + LACOUNT][ENTRIES - 300];
+		
+		boolean[][] resultingData = new boolean[VFCOUNT + LACOUNT][ENTRIES - 300]; // adjusted for baseline
 
-		for (int i = 0; i < ENTRIES - 300; i++)
+		// run each article through link analysis and visual feature detection
+		for (int i = 0; i < ENTRIES - 300; i++) // adjusted for baseline
 		{
 			int j = testingSet.get(i);
 
 			System.out.println("Testing article #" + j);
 
-			// VisualFeatureDetection vfd = new
-			// VisualFeatureDetection(DATASETPATH + htmlFilePaths[i]);
-			// LinkAnalysis la = new LinkAnalysis(htmlURL[i]);
 			VisualFeatureDetection vfd = new VisualFeatureDetection(DATASETPATH + htmlFilePaths[j]);
 			LinkAnalysis la = new LinkAnalysis(htmlURL[j]);
 			resultingData[0][i] = vfd.articleAuthorExists();
@@ -127,6 +127,7 @@ public class Runner
 			resultingData[13][i] = la.linkHasLongerLength();
 		}
 
+		// print out data results for link analysis and visual feature detection
 		for (int i = 0; i < resultingData.length; i++)
 		{
 			System.out.print(DESCRIPTIONS[i] + ",");
@@ -137,43 +138,34 @@ public class Runner
 			System.out.print("\n");
 		}
 
+		// perform ID3 information gain calculations for root node
 		DecisionTree tree = new DecisionTree(null);
 		ArrayList<Integer> usedDataLoc = new ArrayList<Integer>();
 		boolean[] actualData = htmlIsArticle.clone();
 		boolean[][] randomData = resultingData.clone();
 		int index = tree.getIndexOfLargestInfoGain(actualData, randomData);
-		// tree.setRoot(new TreeNode(0, DESCRIPTIONS[index]));
 
-		/*
-		 * boolean[][] resized =
-		 * tree.resizeDataArrayFromUsedIndices(usedDataLoc, randomData);
-		 * ArrayList<Integer> yes = tree.countOfBooleans(randomData[index],
-		 * true); boolean[] resizedActual = tree.resizeActualDataArray(yes,
-		 * actualData); boolean[][] resizeReady =
-		 * tree.resizeResultDataArray(yes, resized); int nextIndex =
-		 * tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
-		 */
 		boolean[][] resized;
 		boolean[] resizedActual;
 		boolean[][] resizeReady;
 		int nextIndex = index;
-		int prevNoNode = 0;
-		int prevYesNode = 0;
-		int levelCount = 0;
 		ArrayList<String> usedDesc = new ArrayList<String>();
 
+		// perform information gain calculations for child nodes
 		int i = 0;
 		while (usedDataLoc.size() < randomData.length && i < randomData.length)
 		{
 			int descIndex;
 
+			// add root node
 			if (i == 0)
 			{
 				usedDataLoc.add(nextIndex);
 				tree.setRoot(new TreeNode(0, DESCRIPTIONS[nextIndex]));
 				usedDesc.add(DESCRIPTIONS[nextIndex]);
-				levelCount++;
 			}
+			// check if the count i is odd
+			// then run info gain calculation
 			else if (i % 2 == 1)
 			{
 				ArrayList<Integer> yes = tree.countOfBooleans(randomData[nextIndex], true);
@@ -182,18 +174,21 @@ public class Runner
 				resizeReady = tree.resizeResultDataArray(yes, resized);
 
 				nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+				// always no (info gain = 0)
 				if (nextIndex == -1)
 				{
 					tree.addNodeToBranch(new TreeNode(i, "Always No"), findPrevNodeForOddCount(i), true);
 					nextIndex = index;
 				}
+				// always yes (info gain = 1)
 				else if (nextIndex < -1)
 				{
 					int realIndex = (nextIndex + 2) * -1;
 					tree.addNodeToBranch(new TreeNode(i, "Always Yes"), findPrevNodeForOddCount(i), true);
 					nextIndex = index;
-
+					usedDataLoc.add(realIndex);
 				}
+				// info gain is between 0 and 1, add node with description
 				else
 				{
 					descIndex = getDescriptionIndexFromRemaining(usedDesc, DESCRIPTIONS, nextIndex);
@@ -202,9 +197,10 @@ public class Runner
 					usedDesc.add(DESCRIPTIONS[descIndex]);
 				}
 				index = nextIndex;
-				prevYesNode = i;
 
 			}
+			// check if the count i is even
+			// then run info gain calculation
 			else if (i % 2 == 0)
 			{
 				ArrayList<Integer> no = tree.countOfBooleans(randomData[nextIndex], false);
@@ -213,12 +209,14 @@ public class Runner
 				resizeReady = tree.resizeResultDataArray(no, resized);
 
 				nextIndex = tree.getIndexOfLargestInfoGain(resizedActual, resizeReady);
+				// always no (info gain = 0)
 				if (nextIndex == -1)
 				{
 					tree.addNodeToBranch(new TreeNode(i, "Always No"), findPrevNodeForEvenCount(i), false);
 					usedDataLoc.add(index);
 					nextIndex = index;
 				}
+				// always yes (info gain = 1)
 				else if (nextIndex < -1)
 				{
 					int realIndex = (nextIndex + 2) * -1;
@@ -226,6 +224,7 @@ public class Runner
 					nextIndex = index;
 					usedDataLoc.add(realIndex);
 				}
+				// info gain is between 0 and 1, add node with description
 				else
 				{
 					descIndex = getDescriptionIndexFromRemaining(usedDesc, DESCRIPTIONS, nextIndex);
@@ -233,9 +232,8 @@ public class Runner
 					tree.addNodeToBranch(new TreeNode(i, DESCRIPTIONS[descIndex]), findPrevNodeForEvenCount(i), false);
 					usedDesc.add(DESCRIPTIONS[descIndex]);
 				}
-
+				// keep track of from calculation
 				index = nextIndex;
-				prevNoNode = i;
 			}
 
 			System.out.print("\n");
@@ -244,6 +242,7 @@ public class Runner
 			i++;
 		}
 
+		// check if any nodes with "always yes" or "always no" has children
 		ArrayList<Integer> removeList = new ArrayList<Integer>();
 		for (int j = 0; j < 14; j++)
 		{
@@ -255,6 +254,7 @@ public class Runner
 			}
 		}
 
+		// remove children of "always yes/no" nodes
 		for (int j = 0; j < removeList.size(); j++)
 		{
 			TreeNode root = tree.getRoot();
@@ -266,7 +266,7 @@ public class Runner
 			}
 			catch (Exception e)
 			{
-
+				// just skip
 			}
 		}
 
@@ -274,6 +274,15 @@ public class Runner
 		tree.printTree();
 	}
 
+	/**
+	 * Determines which description string to use given a list of used
+	 * descriptions. This verifies that descriptions aren't duplicated on the
+	 * tree.
+	 * @param used the description strings used
+	 * @param desc the array of descriptions
+	 * @param index the current index
+	 * @return the index of the description to be used.
+	 */
 	public static int getDescriptionIndexFromRemaining(ArrayList<String> used, String[] desc, int index)
 	{
 		int chosen = 0;
@@ -298,6 +307,11 @@ public class Runner
 		return chosen;
 	}
 
+	/**
+	 * Calculates the index of the parent node.
+	 * @param index the current index (odd number)
+	 * @return the index of the parent node.
+	 */
 	public static int findPrevNodeForOddCount(int index)
 	{
 		if (index == 0)
@@ -312,6 +326,11 @@ public class Runner
 		}
 	}
 
+	/**
+	 * Calculates the index of the parent node.
+	 * @param index the current index (even number)
+	 * @return the index of the parent node.
+	 */
 	public static int findPrevNodeForEvenCount(int index)
 	{
 		if (index == 0)
