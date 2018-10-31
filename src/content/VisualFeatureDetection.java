@@ -434,7 +434,14 @@ public class VisualFeatureDetection
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
-			size = calculateEmAsPixels(Double.parseDouble(((trimmed))));
+			try
+			{
+				size = calculateEmAsPixels(Double.parseDouble(((trimmed))));
+			}
+			catch (Exception e)
+			{
+				size = -1.0;
+			}
 		}
 		// trim down to get the correct size as a double if measured as
 		// percentage
@@ -442,7 +449,14 @@ public class VisualFeatureDetection
 		{
 			String trimmed = fontSize.trim();
 			// convert to double
-			size = Double.parseDouble(((trimmed.substring(0, trimmed.length() - 2)))) / 100.0;
+			try
+			{
+				size = Double.parseDouble(((trimmed.substring(0, trimmed.length() - 2)))) / 100.0;
+			}
+			catch (Exception e)
+			{
+				size = -1.0;
+			}
 		}
 		else
 		{
@@ -455,7 +469,14 @@ public class VisualFeatureDetection
 				trimmed = trimmed.substring(0, trimmed.length() - 1);
 			}
 			// convert from string to double
-			size = Double.parseDouble(((trimmed)));
+			try
+			{
+				size = Double.parseDouble(((trimmed)));
+			}
+			catch (Exception e)
+			{
+				size = -1.0;
+			}
 		}
 		return size;
 	}
