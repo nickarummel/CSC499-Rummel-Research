@@ -18,7 +18,7 @@ import link.LinkAnalysis;
  * @author Nick Rummel
  *
  */
-public class RunAllWithTree
+public class RunLAOnly
 {
 
 	/**
@@ -83,6 +83,10 @@ public class RunAllWithTree
 	{ "Article Author Exists?", "Article Category Exists?", "Article Comment Link Exists?", "Article Content Exists?",
 			"Article Publication Date Exists?", "Article Related News Link Exists?", "Article Source Exists?",
 			"Article Title Exists?" };
+
+	private final static String[] LADESCRIPTIONS =
+	{ "Link Does Not Contain Reserve Word?", "Link Does Not End With Slash?", "Link Has Date?",
+			"Link Has Four Slashes?", "Link Has ID Number?", "Link Has Longer Length?" };
 
 	/**
 	 * Main method
@@ -203,27 +207,29 @@ public class RunAllWithTree
 
 		// perform ID3 information gain calculations for root node of VF
 		// attributes only
-		DecisionTree vfdOnlyTree = new DecisionTree(null);
+		DecisionTree laOnlyTree = new DecisionTree(null);
 		usedDataLoc = new ArrayList<Integer>();
 		actualData = htmlIsArticle.clone();
 
 		// copy training set result data to a new array of the proper size
-		boolean[][] vfOnlyData = new boolean[VFDESCRIPTIONS.length][resultingTrainingData[0].length];
-		for (int i = 0; i < VFDESCRIPTIONS.length; i++)
+		boolean[][] laOnlyData = new boolean[LADESCRIPTIONS.length][resultingTrainingData[0].length];
+		for (int i = 0; i < LADESCRIPTIONS.length; i++)
 		{
 			for (int j = 0; j < resultingTrainingData[0].length; j++)
 			{
-				vfOnlyData[i][j] = resultingTrainingData[i][j];
+				laOnlyData[i][j] = resultingTrainingData[i+VFCOUNT][j];
 			}
 		}
-		randomData = vfOnlyData.clone();
-		index = vfdOnlyTree.getIndexOfLargestInfoGain(actualData, randomData);
+		randomData = laOnlyData.clone();
+		index = laOnlyTree.getIndexOfLargestInfoGain(actualData, randomData);
 		nextIndex = index;
 		usedDesc = new ArrayList<String>();
-		generateDecisionTree(vfdOnlyTree, usedDataLoc, actualData, randomData, index, nextIndex, usedDesc,
-				VFDESCRIPTIONS, VFCOUNT);
-		System.out.println("\nVF Only Tree");
-		vfdOnlyTree.printTree();
+		generateDecisionTree(laOnlyTree, usedDataLoc, actualData, randomData, index, nextIndex, usedDesc,
+				LADESCRIPTIONS, LACOUNT);
+		System.out.println("\nLA Only Tree");
+		laOnlyTree.printTree();
+		
+		
 
 		// run testing set through VF+LA decision tree and print out results
 		System.out.println("\nTesting All Attribute Results in Decision Tree...");
@@ -231,14 +237,14 @@ public class RunAllWithTree
 
 		// run testing set through VF only decision tree and print out
 		// results
-		System.out.println("\nTest VF Attribute Results only in Decision Tree...");
-		testDataInDecisionTree(testingSet, resultingTestingData, vfdOnlyTree, VFDESCRIPTIONS, TESTSETSIZE);
+		System.out.println("\nTest LA Attribute Results only in Decision Tree...");
+		testDataInDecisionTree(testingSet, resultingTestingData, laOnlyTree, LADESCRIPTIONS, TESTSETSIZE);
 
 		System.out.println("\nTest All Attribute Results from Training Set in Decision Tree...");
 		testDataInDecisionTree(trainingSet, resultingTrainingData, vfdAndLaTree, ALLDESCRIPTIONS, TRAININGSETSIZE);
 
-		System.out.println("\nTest VF Attribute Results only from Training Set in Decision Tree...");
-		testDataInDecisionTree(trainingSet, resultingTrainingData, vfdOnlyTree, VFDESCRIPTIONS, TRAININGSETSIZE);
+		System.out.println("\nTest LA Attribute Results only from Training Set in Decision Tree...");
+		testDataInDecisionTree(trainingSet, resultingTrainingData, laOnlyTree, LADESCRIPTIONS, TRAININGSETSIZE);
 
 	}
 
