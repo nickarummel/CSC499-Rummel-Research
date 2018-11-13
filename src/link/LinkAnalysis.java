@@ -321,4 +321,36 @@ public class LinkAnalysis
 		}
 	}
 
+	/**
+	 * Tests each attribute of link analysis and prints out the results.
+	 */
+	public void showLinkData()
+	{
+		System.out.println("LINK ANALYSIS");
+		System.out.println("URL: " + url + "\n");
+
+		boolean result;
+
+		result = linkHasFourSlashes();
+		System.out.println("Link has four slashes: " + result);
+
+		result = linkHasIDNumber();
+		System.out.println("Link has ID: " + result);
+
+		result = linkHasDate();
+		System.out.println("Link has date: " + result);
+
+		result = linkHasLongerLength();
+		System.out.println("Link has longer length: " + result);
+
+		result = linkDoesNotContainReservedWord();
+		System.out.println("Link does not contain reserved word: " + result);
+
+		result = linkDoesNotEndWithSlash();
+		System.out.println("Link does not end with slash: " + result);
+
+		System.out.println("");
+
+	}
+
 }
