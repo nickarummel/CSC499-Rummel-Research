@@ -240,6 +240,46 @@ public class VisualFeatureDetection
 	}
 
 	/**
+	 * Checks each element of HTML for the article title.
+	 */
+	public void showArticleTitleData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE TITLE");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articleTitleFontSizeDetection(allElements.get(i));
+			System.out.println("Article Title Font Size: " + result);
+			// rule 2
+			result = articleTitleFontColorDetection(allElements.get(i));
+			System.out.println("Article Title Font Color: " + result);
+			
+			// rule 3
+			result = articleTitleTopHalfOfPageDetection(allElements.get(i));
+			System.out.println("Article Title Top Half of Page: " + result);
+			
+			// rule 4
+			result = articleTitlePageDownDetection(allElements.get(i));
+			System.out.println("Article Title Page Down: " + result);
+			
+			// rule 5
+			result = articleTitleTextLengthDetection(allElements.get(i));
+			System.out.println("Article Title Text Length: " + result);
+			
+			// rule 6
+			result = articleTitleHyperLinkDetection(allElements.get(i));
+			System.out.println("Article Title Hyperlink: " + result);
+			System.out.println("");
+		}
+	}
+
+	/**
 	 * Retrieves all the text elements (meaning that they have a paragraph or
 	 * one of the six heading tags.
 	 * @return The Elements array list
@@ -292,7 +332,7 @@ public class VisualFeatureDetection
 		Element styleNode = getHeadStyleSheet(headNode);
 
 		Element curElement = textSet;
-		// System.out.println("Element: " + curElement.toString());
+		// System.out.println("Element:\n" + curElement.toString());
 		double size = 0.0;
 		// check for in-line style attribute
 		if (curElement.hasAttr("style") && curElement.attr("style").contains("font-size"))
@@ -1240,6 +1280,43 @@ public class VisualFeatureDetection
 
 		return pubDateExists;
 	}
+	
+	/**
+	 * Checks each element of HTML for the article publication date.
+	 */
+	public void showArticlePublicationDateData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE PUBLICATION DATE");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articlePublicationDateFontSizeDetection(allElements.get(i));
+			System.out.println("Article Publication Date Font Size: " + result);
+			// rule 2
+			result = articlePublicationDateFontColorDetection(allElements.get(i));
+			System.out.println("Article Publication Date Font Color: " + result);
+			
+			// rule 3
+			result = articlePublicationDateTextLengthDetection(allElements.get(i));
+			System.out.println("Article Publication Date Text Length: " + result);
+			
+			// rule 4
+			result = articlePublicationDateFormatDetection(allElements.get(i));
+			System.out.println("Article Publication Date Format: " + result);
+			
+			// rule 5
+			result = articlePublicationDateHyperLinkDetection(allElements.get(i));
+			System.out.println("Article Publication Date Hyperlink: " + result);
+			
+			System.out.println("");
+		}
+	}
 
 	/**
 	 * Date detection rule #1: see if the Element's text font size is less than
@@ -1514,6 +1591,35 @@ public class VisualFeatureDetection
 		}
 		return authorExists;
 	}
+	
+	/**
+	 * Checks each element of HTML for the article author.
+	 */
+	public void showArticleAuthorData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE AUTHOR");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articleAuthorFontSizeDetection(allElements.get(i));
+			System.out.println("Article Author Font Size: " + result);
+			// rule 2
+			result = articlePublicationDateFontColorDetection(allElements.get(i));
+			System.out.println("Article Author Font Color: " + result);
+			
+			// rule 3
+			result = articlePublicationDateTextLengthDetection(allElements.get(i));
+			System.out.println("Article Author Text Length: " + result);
+			
+			System.out.println("");
+		}
+	}
 
 	/**
 	 * Author Detection Rule #1: Determine if the node's text is less than or
@@ -1659,6 +1765,39 @@ public class VisualFeatureDetection
 		return commentLinkExists;
 
 	}
+	
+	/**
+	 * Checks each element of HTML for the article comment link.
+	 */
+	public void showArticleCommentLinkData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE COMMENT LINK");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articleCommentLinkFontSizeDetection(allElements.get(i));
+			System.out.println("Article Comment Link Font Size: " + result);
+			// rule 2
+			result = articleCommentLinkTextLengthDetection(allElements.get(i));
+			System.out.println("Article Comment Link Text Length: " + result);
+			
+			// rule 3
+			result = articleCommentLinkFrequentWordDetection(allElements.get(i));
+			System.out.println("Article Comment Link Frequent Word: " + result);
+			
+			// rule 4
+			result = articleCommentLinkHyperLinkDetection(allElements.get(i));
+			System.out.println("Article Comment Link Hyperlink: " + result);
+			
+			System.out.println("");
+		}
+	}
 
 	/**
 	 * Comment link detection rule #1: the text's font size should not be larger
@@ -1745,6 +1884,39 @@ public class VisualFeatureDetection
 		}
 
 		return sourceExists;
+	}
+	
+	/**
+	 * Checks each element of HTML for the article source.
+	 */
+	public void showArticleSourceData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE SOURCE");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articleSourceFontSizeDetection(allElements.get(i));
+			System.out.println("Article Source Font Size: " + result);
+			// rule 2
+			result = articleSourceFontColorDetection(allElements.get(i));
+			System.out.println("Article Source Font Color: " + result);
+			
+			// rule 3
+			result = articleSourceFrequentWordDetection(allElements.get(i));
+			System.out.println("Article Source Frequent Word: " + result);
+			
+			// rule 4
+			result = articleSourceTextLengthDetection(allElements.get(i));
+			System.out.println("Article Source Text Length: " + result);
+			
+			System.out.println("");
+		}
 	}
 
 	/**
@@ -1836,6 +2008,39 @@ public class VisualFeatureDetection
 		}
 
 		return contentExists;
+	}
+	
+	/**
+	 * Checks each element of HTML for the article content.
+	 */
+	public void showArticleContentData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE CONTENT");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			
+			boolean result;
+			// rule 1
+			result = articleContentFontSizeDetection(allElements.get(i));
+			System.out.println("Article Content Font Size: " + result);
+			// rule 2
+			result = articleContentFontColorDetection(allElements.get(i));
+			System.out.println("Article Content Font Color: " + result);
+			
+			// rule 3
+			result = articleContentPageDownDetection(allElements.get(i));
+			System.out.println("Article Content Page Down: " + result);
+			
+			// rule 4
+			result = articleContentTextLengthDetection(allElements.get(i));
+			System.out.println("Article Content Text Length: " + result);
+
+			System.out.println("");
+		}
 	}
 
 	/**
@@ -1929,6 +2134,42 @@ public class VisualFeatureDetection
 		}
 
 		return categoryExists;
+	}
+	
+	/**
+	 * Checks each element of HTML for the article category.
+	 */
+	public void showArticleCategoryData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE CATEGORY");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			boolean result;
+			// rule 1
+			result = articleCategoryFontSizeDetection(allElements.get(i));
+			System.out.println("Article Category Font Size: " + result);
+			// rule 2
+			result = articleCategoryTopHalfOfPageDetection(allElements.get(i));
+			System.out.println("Article Category Top Half of Page: " + result);
+			
+			// rule 3
+			result = articleCategoryPageDownDetection(allElements.get(i));
+			System.out.println("Article Category Page Down: " + result);
+			
+			// rule 4
+			result = articleCategoryTextLengthDetection(allElements.get(i));
+			System.out.println("Article Category Text Length: " + result);
+			
+			// rule 5
+			result = articleCategoryFrequentWordDetection(allElements.get(i));
+			System.out.println("Article Category Frequent Word: " + result);
+			
+			System.out.println("");
+		}
 	}
 
 	/**
@@ -2047,6 +2288,42 @@ public class VisualFeatureDetection
 		}
 
 		return relNewsLinksExists;
+	}
+	
+	/**
+	 * Checks each element of HTML for the article related news links.
+	 */
+	public void showArticleRelatedNewsLinksData()
+	{
+		Elements allElements = getAllTextElements();
+		for (int i = 0; i < allElements.size(); i++)
+		{
+			System.out.println("\nARTICLE RELATED NEWS LINKS");
+			System.out.println("Element:\n" + allElements.get(i).outerHtml());
+			System.out.println("");
+			
+			boolean result;
+			// rule 1
+			result = articleRelatedNewsLinksFontSizeDetection(allElements.get(i));
+			System.out.println("Article Related News Links Font Size: " + result);
+			// rule 2
+			result = articleRelatedNewsLinksFontColorDetection(allElements.get(i));
+			System.out.println("Article Related News Links Font Color: " + result);
+			
+			// rule 3
+			result = articleRelatedNewsLinksBottomHalfOfPageDetection(allElements.get(i));
+			System.out.println("Article Related News Links Bottom Half: " + result);
+			
+			// rule 4
+			result = articleRelatedNewsLinksHyperLinkDetection(allElements.get(i));
+			System.out.println("Article Related News Links Hyperlink: " + result);
+			
+			// rule 5
+			result = articleRelatedNewsLinksFrequentWordDetection(allElements.get(i));
+			System.out.println("Article Related News Links Frequent Word: " + result);
+			
+			System.out.println("");
+		}
 	}
 
 	/**
