@@ -241,7 +241,7 @@ public class VisualFeatureDetection
 
 	/**
 	 * Retrieves all the text elements (meaning that they have a paragraph or
-	 * one of the six heading tags.
+	 * one of the six heading tags). I am adding in span, time, div, and a tags.
 	 * @return The Elements array list
 	 */
 	protected Elements getAllTextElements()
@@ -253,6 +253,8 @@ public class VisualFeatureDetection
 		allElements.addAll(doc.getElementsByTag("span"));
 		// get all elements with a time tag
 		allElements.addAll(doc.getElementsByTag("time"));
+		// get all elements with div tags
+		allElements.addAll(doc.getElementsByTag("div"));
 		// get all elements with heading tags
 		for (int i = 1; i <= 6; i++)
 		{
@@ -329,13 +331,21 @@ public class VisualFeatureDetection
 		// no style has been found
 		else
 		{
+
 			// get default font size for text tag
 			String tag = curElement.tagName();
-			for (int j = 0; j < TEXTTAGS.length; j++)
+			if (tag.equals("span") || tag.equals("div") || tag.equals("time"))
 			{
-				if (tag.equals(TEXTTAGS[j]))
+				size = calculateEmAsPixels(DEFAULTBODYEMSIZE[0]);
+			}
+			else
+			{
+				for (int j = 0; j < TEXTTAGS.length; j++)
 				{
-					size = calculateEmAsPixels(DEFAULTBODYEMSIZE[j]);
+					if (tag.equals(TEXTTAGS[j]))
+					{
+						size = calculateEmAsPixels(DEFAULTBODYEMSIZE[j]);
+					}
 				}
 			}
 		}
