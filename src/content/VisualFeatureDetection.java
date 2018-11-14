@@ -750,19 +750,19 @@ public class VisualFeatureDetection
 						{
 							// a number is read if it a comma is reached or if
 							// the next character is not a number
-							if (count == 1)
+							if (count == 1 && !num.equals(""))
 							{
 								// store in red as int
 								red = Integer.parseInt(num.trim());
 								num = "";
 							}
-							if (count == 2)
+							if (count == 2 && !num.equals(""))
 							{
 								// store in green as int
 								green = Integer.parseInt(num.trim());
 								num = "";
 							}
-							if (count == 3)
+							if (count == 3 && !num.equals(""))
 							{
 								// store in blue as int
 								blue = Integer.parseInt(num.trim());

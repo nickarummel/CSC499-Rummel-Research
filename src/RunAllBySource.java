@@ -130,7 +130,7 @@ public class RunAllBySource
 		{
 			e.printStackTrace();
 		}
-		for (int k = 1; k < 2; k++)
+		for (int k = 1; k < 11; k++)
 		{
 			String srcName = "";
 
